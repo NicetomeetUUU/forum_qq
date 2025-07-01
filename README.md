@@ -1,2 +1,4 @@
-# forum_qq
-A tiny forum under go_zero frame
+## 基于go-zero的论坛项目
+（从基本的数据库crud不断扩展其他中间件了解整个框架如何使用）
+1. go语言实战
+2. 熟悉go-zero框架
