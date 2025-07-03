@@ -1,0 +1,24 @@
+Error: table user: missing primary key
+[94mUsage:[0m
+  [92mgoctl model mysql ddl [flags][0m
+
+[94mFlags:[0m
+[92m      --branch string     The branch of the remote repo, it does work with --remote
+  -c, --cache             Generate code with cache [optional]
+      --database string   
+  -d, --dir string        The target dir
+  -h, --help              help for ddl
+      --home string       The goctl home path of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+      --idea              For idea plugin [optional]
+      --remote string     The remote git repo of the template, --home and --remote cannot be set at the same time, if they are, --remote has higher priority
+                          The git repo directory must be consistent with the https://github.com/zeromicro/go-zero-template directory structure
+  -s, --src string        The path or path globbing patterns of the ddl
+      --style string      The file naming format, see [https://github.com/zeromicro/go-zero/blob/master/tools/goctl/config/readme.md]
+[0m
+
+[94mGlobal Flags:[0m
+[92m  -i, --ignore-columns strings   Ignore columns while creating or updating rows (default [create_at,created_at,create_time,update_at,updated_at,update_time])
+  -p, --prefix string            The cache prefix, effective when --cache is true (default "cache")
+      --strict                   Generate model in strict mode
+[0m
+

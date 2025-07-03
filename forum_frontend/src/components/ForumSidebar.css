@@ -1,0 +1,61 @@
+.forum-sidebar {
+  width: 220px;
+  padding: 32px 0 0 32px;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.start-discussion {
+  background: #4b6584;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  margin-bottom: 24px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.start-discussion:hover {
+  background: #22325a;
+}
+
+.sidebar-section {
+  margin-bottom: 24px;
+}
+
+.latest-btn {
+  background: #e5e7eb;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 1rem;
+  color: #3b4a6b;
+  cursor: pointer;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.sidebar-nav li {
+  padding: 10px 0 10px 0;
+  color: #3b4a6b;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: color 0.2s, opacity 0.2s;
+}
+.sidebar-nav li.active {
+  font-weight: bold;
+  opacity: 1;
+}
+.sidebar-nav li:hover {
+  color: #22325a;
+  opacity: 1;
+} 

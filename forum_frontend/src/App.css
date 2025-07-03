@@ -1,0 +1,15 @@
+.forum-app {
+  min-height: 100vh;
+  background: #f8fafc;
+}
+
+.forum-main {
+  display: flex;
+  flex-direction: row;
+  max-width: 1200px;
+  margin: 32px auto 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  min-height: 600px;
+} 
