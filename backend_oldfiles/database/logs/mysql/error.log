@@ -1,0 +1,15 @@
+2025-07-01T10:06:36.931917Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.0.42) initializing of server in progress as process 81
+2025-07-01T10:06:36.934704Z 0 [Warning] [MY-010159] [Server] Setting lower_case_table_names=2 because file system for /var/lib/mysql/ is case insensitive
+2025-07-01T10:06:36.940442Z 0 [Warning] [MY-013907] [InnoDB] Deprecated configuration parameters innodb_log_file_size and/or innodb_log_files_in_group have been used to compute innodb_redo_log_capacity=536870912. Please use innodb_redo_log_capacity instead.
+2025-07-01T10:06:36.941152Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2025-07-01T10:06:37.109929Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2025-07-01T10:06:37.750084Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2025-07-01T10:06:39.293344Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.0.42) starting as process 135
+2025-07-01T10:06:39.294961Z 0 [Warning] [MY-010159] [Server] Setting lower_case_table_names=2 because file system for /var/lib/mysql/ is case insensitive
+2025-07-01T10:06:39.300373Z 0 [Warning] [MY-013907] [InnoDB] Deprecated configuration parameters innodb_log_file_size and/or innodb_log_files_in_group have been used to compute innodb_redo_log_capacity=536870912. Please use innodb_redo_log_capacity instead.
+2025-07-01T10:06:39.301277Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2025-07-01T10:06:39.414642Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2025-07-01T10:06:39.556098Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2025-07-01T10:06:39.556162Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2025-07-01T10:06:39.571144Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2025-07-01T10:06:39.571192Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.0.42'  socket: '/var/lib/mysql/mysql.sock'  port: 0  MySQL Community Server - GPL.

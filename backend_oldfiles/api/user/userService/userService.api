@@ -1,0 +1,95 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "用户服务"
+	description: "用户服务相关的api接口"
+)
+
+type (
+	UserInfo {
+		Id             int64
+		Email          string
+		Password       string
+		Username       string
+		Avatar         string
+		Signature      string
+		BirthdayStr    string
+		Role           string
+		Status         string
+		IsDeleted      int64
+		CreatedTimeStr string
+		UpdatedTimeStr string
+	}
+)
+
+type (
+	// 注册
+	RegisterReq {
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	RegisterResp {
+		BaseResp
+		UserId int64 `json:"user_id"`
+	}
+	// 登录
+	LoginReq {
+		Email    string `json:"email,optional"`
+		Username string `json:"username,optional"`
+		Password string `json:"password"`
+	}
+	LoginResp {
+		BaseResp
+		Token  string `json:"token"`
+		UserId int64  `json:"user_id"`
+	}
+	// 获取用户信息
+	GetInfoReq {
+		UserId int64 `json:"user_id"`
+	}
+	GetInfoResp {
+		BaseResp
+		UserInfo UserInfo `json:"user_info"`
+	}
+	// 更新用户信息
+	UpdateReq {
+		UserId   int64    `json:"user_id"`
+		UserInfo UserInfo `json:"user_info"`
+	}
+	UpdateResp {
+		BaseResp
+		UserInfo UserInfo `json:"user_info"`
+	}
+	// 删除用户
+	DeleteReq {
+		UserId int64 `json:"user_id"`
+	}
+	DeleteResp {
+		BaseResp
+	}
+	// 基础响应
+	BaseResp {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+	}
+)
+
+service userService-api {
+	@handler Register
+	post /api/user/register (RegisterReq) returns (RegisterResp)
+
+	@handler Login
+	post /api/user/login (LoginReq) returns (LoginResp)
+
+	@handler GetInfo
+	post /api/user/getInfo (GetInfoReq) returns (GetInfoResp)
+
+	@handler Update
+	post /api/user/update (UpdateReq) returns (UpdateResp)
+
+	@handler Delete
+	post /api/user/delete (DeleteReq) returns (DeleteResp)
+}
+

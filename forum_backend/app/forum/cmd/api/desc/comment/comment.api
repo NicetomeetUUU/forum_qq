@@ -1,0 +1,13 @@
+syntax = "v1"
+
+info (
+    version: "1.0.0"
+    title: "评论实例"
+    description: "评论实例相关的api请求与回复定义"
+    author: "qiuqiu"
+    email: "rhysqiuj@gmail.com"
+)
+
+type (
+    CommentInfo {}
+)

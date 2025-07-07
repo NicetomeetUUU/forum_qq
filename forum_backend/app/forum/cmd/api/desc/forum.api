@@ -1,0 +1,52 @@
+syntax = "v1"
+
+info (
+    version: "1.0.0"
+    title: "论坛服务"
+    description: "论坛服务相关的api路由"
+    author: "qiuqiu"
+    email: "rhysqiuj@gmail.com"
+)
+
+import (
+    "user/user.api"
+    "post/post.api"
+    "comment/comment.api"
+)
+
+@server(
+    prefix: api/v1/
+    group: user
+)
+
+// 无需鉴权
+service userService {
+    @handler Register
+    post /u/register (RegisterReq) returns (RegisterResp)
+
+    @handler Login
+    post /u/login (LoginReq) returns (LoginResp)
+
+    @handler GetInfo
+    get /u/info (GetInfoReq) returns (GetInfoResp)
+}
+
+@server(
+    prefix: api/v1/
+    group: user
+    jwt: JwtAuth
+)
+
+// 需要鉴权
+service userService {
+    @handler detail
+    post /u/detail (GetInfoReq) returns (GetInfoResp)
+}
+
+@server(
+    prefix: api/v1/
+    group: post
+)
+
+service postService {
+}

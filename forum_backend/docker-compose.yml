@@ -1,0 +1,39 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: qq_forum_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_HOST: '%'
+      TZ: Asia/Shanghai
+    ports:
+      - 3307:3306
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4 
+      - --collation-server=utf8mb4_unicode_ci 
+    networks:
+      - qq_forum_network
+
+  redis:
+    image: redis:7.0
+    container_name: qq_forum_redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data
+    environment:
+      TZ: Asia/Shanghai
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - qq_forum_network
+
+networks:
+  qq_forum_network:
+    driver: bridge

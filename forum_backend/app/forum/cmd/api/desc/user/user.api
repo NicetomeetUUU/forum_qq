@@ -1,0 +1,65 @@
+syntax = "v1"
+
+info (
+    version: "1.0.0"
+    title: "用户实例"
+    description: "用户实例相关的api请求与回复定义"
+    author: "qiuqiu"
+    email: "rhysqiuj@gmail.com"
+)
+
+type UserInfo {
+    Id             int64
+    Email          string
+    Password       string
+    Username       string
+    Avatar         string
+    Signature      string
+    BirthdayStr    string
+    Role           string
+    Status         string
+    IsDeleted      int64
+    CreatedTimeStr string
+    UpdatedTimeStr string
+}
+
+type BaseResp {
+    Code    int64
+    Message string
+}
+
+type (
+    RegisterReq {
+        Email    string `json:"email"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+    }
+    RegisterResp {
+        BaseResp
+        UserId int64 `json:"user_id"`
+    }
+)
+
+type (
+    LoginReq {
+        Email    string `json:"email"`
+        Password string `json:"password"`
+    }
+    LoginResp {
+        BaseResp
+        Token string `json:"token"`
+        Expire int64 `json:"expire"`
+        RefreshToken string `json:"refresh_token"`
+        UserId int64 `json:"user_id"`
+    }
+)
+
+type (
+    GetInfoReq {
+        UserId int64 `json:"user_id"`
+    }
+    GetInfoResp {
+        BaseResp
+        UserInfo UserInfo `json:"user_info"`
+    }
+)

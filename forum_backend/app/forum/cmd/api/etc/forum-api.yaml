@@ -1,0 +1,19 @@
+Name: forum-api
+Host: 0.0.0.0
+Port: 8888
+
+Log:
+  ServiceName: forum-api
+  Mode: file
+  Path: /Users/qiuqiu/Desktop/forum_backend/logs/forum-api.log
+  Level: info
+  KeepDays: 7
+  Compress: true
+  
+DataSource: "root:root542@tcp(localhost:3307)/qq_forum?charset=utf8mb4&parseTime=true&loc=Asia%2FShanghai"
+
+Cache:
+  - Weight: 100
+    Host: localhost:6379
+    Type: node
+    Pass: redisqiuqiu542

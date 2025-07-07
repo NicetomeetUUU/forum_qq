@@ -1,0 +1,15 @@
+syntax = "v1"
+
+info (
+    version: "1.0.0"
+    title: "帖子实例"
+    description: "帖子实例相关的api请求与回复定义"
+    author: "qiuqiu"
+    email: "rhysqiuj@gmail.com"
+)
+
+type (
+    PostInfo {
+        Id int64
+    }
+)
