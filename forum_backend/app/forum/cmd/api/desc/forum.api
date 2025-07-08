@@ -1,52 +1,122 @@
 syntax = "v1"
 
 info (
-    version: "1.0.0"
-    title: "论坛服务"
-    description: "论坛服务相关的api路由"
-    author: "qiuqiu"
-    email: "rhysqiuj@gmail.com"
+	version:     "1.0.0"
+	title:       "论坛服务"
+	description: "论坛服务相关的api路由"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
 )
 
 import (
-    "user/user.api"
-    "post/post.api"
-    "comment/comment.api"
+	"user/user.api"
+	"user/admin.api"
+	"post/post.api"
+	"comment/comment.api"
+	"category/category.api"
 )
 
-@server(
-    prefix: api/v1/
-    group: user
+@server (
+	prefix: api/v1
+	group:  user
 )
+service forumService {
+	// ---------------用户服务---------------
+	@handler Register
+	post /u/register (RegisterReq) returns (RegisterResp)
 
-// 无需鉴权
-service userService {
-    @handler Register
-    post /u/register (RegisterReq) returns (RegisterResp)
+	@handler Login
+	post /u/login (LoginReq) returns (LoginResp)
 
-    @handler Login
-    post /u/login (LoginReq) returns (LoginResp)
-
-    @handler GetInfo
-    get /u/info (GetInfoReq) returns (GetInfoResp)
+	@handler GetUserInfo
+	get /u/info (GetUserReq) returns (GetUserResp)
 }
 
-@server(
-    prefix: api/v1/
-    group: user
-    jwt: JwtAuth
+@server (
+	prefix: api/v1
+	group:  admin
 )
+service forumService {
+	// ---------------管理员服务---------------
+	@handler CreateAdmin
+	post /a/create (CreateAdminReq) returns (CreateAdminResp)
 
-// 需要鉴权
-service userService {
-    @handler detail
-    post /u/detail (GetInfoReq) returns (GetInfoResp)
+	@handler LoginAdmin
+	post /a/login (LoginAdminReq) returns (LoginAdminResp)
+
+	@handler GetAdminInfo
+	get /a/info (GetAdminReq) returns (GetAdminResp)
+
+	@handler UpdateAdmin
+	put /a/update (UpdateAdminReq) returns (UpdateAdminResp)
+
+	@handler DeleteAdmin
+	delete /a/delete (DeleteAdminReq) returns (DeleteAdminResp)
 }
 
-@server(
-    prefix: api/v1/
-    group: post
+@server (
+	prefix: api/v1
+	group:  post
 )
+service forumService {
+	// ---------------帖子服务---------------
+	@handler CreatePost
+	post /p/create (CreatePostReq) returns (CreatePostResp)
 
-service postService {
+	@handler GetPost
+	get /p/detail (GetPostReq) returns (GetPostResp)
+
+	@handler ListPosts
+	get /p/list (ListPostReq) returns (ListPostResp)
+
+	@handler UpdatePost
+	put /p/update (UpdatePostReq) returns (UpdatePostResp)
+
+	@handler DeletePost
+	delete /p/delete (DeletePostReq) returns (DeletePostResp)
 }
+
+@server (
+	prefix: api/v1
+	group:  comment
+)
+service forumService {
+	// ---------------评论服务---------------
+	@handler CreateComment
+	post /c/create (CreateCommentReq) returns (CreateCommentResp)
+
+	@handler GetComment
+	get /c/detail (GetCommentReq) returns (GetCommentResp)
+
+	@handler ListComments
+	get /c/list (ListCommentReq) returns (ListCommentResp)
+
+	@handler UpdateComment
+	put /c/update (UpdateCommentReq) returns (UpdateCommentResp)
+
+	@handler DeleteComment
+	delete /c/delete (DeleteCommentReq) returns (DeleteCommentResp)
+}
+
+@server (
+	prefix: api/v1
+	group:  category
+)
+service forumService {
+	// ---------------分类服务---------------
+	@handler CreateCategory
+	post /ca/create (CreateCategoryReq) returns (CreateCategoryResp)
+
+	@handler UpdateCategory
+	put /ca/update (UpdateCategoryReq) returns (UpdateCategoryResp)
+
+	@handler DeleteCategory
+	delete /ca/delete (DeleteCategoryReq) returns (DeleteCategoryResp)
+
+	@handler GetCategory
+	get /ca/detail (GetCategoryReq) returns (GetCategoryResp)
+
+	@handler ListCategories
+	get /ca/list (ListCategoryReq) returns (ListCategoryResp)
+}
+

@@ -8,6 +8,70 @@ info (
     email: "rhysqiuj@gmail.com"
 )
 
+import "../common/common.api"
+
+type CommentInfo {
+    Id int64 `json:"id"`
+    Content string `json:"content"`
+    UserId int64 `json:"user_id"`
+    PostId int64 `json:"post_id"`
+    ParentId int64 `json:"parent_id"`
+    LikeCount int64 `json:"like_count"`
+    Status int64 `json:"status"`
+    CreatedTime int64 `json:"created_time"`
+    UpdatedTime int64 `json:"updated_time"`
+}
+
 type (
-    CommentInfo {}
+    CreateCommentReq {
+        Content string `json:"content"`
+        UserId int64 `json:"user_id"`
+        PostId int64 `json:"post_id"`
+        ParentId int64 `json:"parent_id"`
+    }
+    CreateCommentResp {
+        BaseResp
+        Comment CommentInfo `json:"comment"`
+    }
+)
+
+type (
+    GetCommentReq {
+        Id int64 `json:"id"`
+    }
+    GetCommentResp {
+        BaseResp
+        Comment CommentInfo `json:"comment"`
+    }
+)
+
+type (
+    ListCommentReq {
+        PaginationReq
+        PostId int64 `json:"post_id"`
+    }
+    ListCommentResp {
+        BaseResp
+        PaginationResp
+        Comments []CommentInfo `json:"comments"`
+    }
+)
+
+type (
+    UpdateCommentReq {
+        Id int64 `json:"id"`
+        Content string `json:"content"`
+    }
+    UpdateCommentResp {
+        BaseResp
+    }
+)
+
+type (
+    DeleteCommentReq {
+        Id int64 `json:"id"`
+    }
+    DeleteCommentResp {
+        BaseResp
+    }
 )

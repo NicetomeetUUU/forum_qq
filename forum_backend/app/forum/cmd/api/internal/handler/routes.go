@@ -6,6 +6,11 @@ package handler
 import (
 	"net/http"
 
+	admin "forum_backend/app/forum/cmd/api/internal/handler/admin"
+	category "forum_backend/app/forum/cmd/api/internal/handler/category"
+	comment "forum_backend/app/forum/cmd/api/internal/handler/comment"
+	post "forum_backend/app/forum/cmd/api/internal/handler/post"
+	user "forum_backend/app/forum/cmd/api/internal/handler/user"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -15,10 +20,145 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 	server.AddRoutes(
 		[]rest.Route{
 			{
+				Method:  http.MethodPost,
+				Path:    "/a/create",
+				Handler: admin.CreateAdminHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/a/delete",
+				Handler: admin.DeleteAdminHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodGet,
-				Path:    "/from/:name",
-				Handler: ApiHandler(serverCtx),
+				Path:    "/a/info",
+				Handler: admin.GetAdminInfoHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/a/login",
+				Handler: admin.LoginAdminHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/a/update",
+				Handler: admin.UpdateAdminHandler(serverCtx),
 			},
 		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/ca/create",
+				Handler: category.CreateCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/ca/delete",
+				Handler: category.DeleteCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/ca/detail",
+				Handler: category.GetCategoryHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/ca/list",
+				Handler: category.ListCategoriesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/ca/update",
+				Handler: category.UpdateCategoryHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/c/create",
+				Handler: comment.CreateCommentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/c/delete",
+				Handler: comment.DeleteCommentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/c/detail",
+				Handler: comment.GetCommentHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/c/list",
+				Handler: comment.ListCommentsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/c/update",
+				Handler: comment.UpdateCommentHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodPost,
+				Path:    "/p/create",
+				Handler: post.CreatePostHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/p/delete",
+				Handler: post.DeletePostHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/p/detail",
+				Handler: post.GetPostHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/p/list",
+				Handler: post.ListPostsHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPut,
+				Path:    "/p/update",
+				Handler: post.UpdatePostHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/u/info",
+				Handler: user.GetUserInfoHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/u/login",
+				Handler: user.LoginHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/u/register",
+				Handler: user.RegisterHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
 	)
 }

@@ -3,10 +3,335 @@
 
 package types
 
-type Request struct {
-	Name string `path:"name,options=you|me"`
+type AdminInfo struct {
+	Id          int64  `json:"id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Username    string `json:"username"`
+	Phone       string `json:"phone"`
+	Status      int64  `json:"status"`
+	IsDeleted   int64  `json:"is_deleted"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
 }
 
-type Response struct {
-	Message string `json:"message"`
+type BaseResp struct {
+	Code    int64  `json:"code"`    // 响应码
+	Message string `json:"message"` // 响应信息
+}
+
+type CategoryInfo struct {
+	Id          int64  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	SortOrder   int64  `json:"sort_order"`
+	IsActive    int64  `json:"is_active"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type CommentInfo struct {
+	Id          int64  `json:"id"`
+	Content     string `json:"content"`
+	UserId      int64  `json:"user_id"`
+	PostId      int64  `json:"post_id"`
+	ParentId    int64  `json:"parent_id"`
+	LikeCount   int64  `json:"like_count"`
+	Status      int64  `json:"status"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type CreateAdminReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Username string `json:"username"`
+	Phone    string `json:"phone"`
+}
+
+type CreateAdminResp struct {
+	BaseResp
+	Admin AdminInfo `json:"admin"`
+}
+
+type CreateCategoryReq struct {
+	Name        string `json:"name"`
+	Description string `json:"description",optional`
+	SortOrder   int64  `json:"sort_order"`
+	IsActive    int64  `json:"is_active",default:1`
+}
+
+type CreateCategoryResp struct {
+	BaseResp
+	CategoryId int64 `json:"category_id"`
+}
+
+type CreateCommentReq struct {
+	Content  string `json:"content"`
+	UserId   int64  `json:"user_id"`
+	PostId   int64  `json:"post_id"`
+	ParentId int64  `json:"parent_id"`
+}
+
+type CreateCommentResp struct {
+	BaseResp
+	Comment CommentInfo `json:"comment"`
+}
+
+type CreatePostReq struct {
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	CategoryId int64  `json:"category_id,optional"`
+}
+
+type CreatePostResp struct {
+	BaseResp
+	PostId int64 `json:"post_id"`
+}
+
+type DeleteAdminReq struct {
+	Id int64 `json:"id"`
+}
+
+type DeleteAdminResp struct {
+	BaseResp
+}
+
+type DeleteCategoryReq struct {
+	Id int64 `json:"id"`
+}
+
+type DeleteCategoryResp struct {
+	BaseResp
+}
+
+type DeleteCommentReq struct {
+	Id int64 `json:"id"`
+}
+
+type DeleteCommentResp struct {
+	BaseResp
+}
+
+type DeletePostReq struct {
+	Id int64 `path:"id"`
+}
+
+type DeletePostResp struct {
+	BaseResp
+}
+
+type GetAdminReq struct {
+	Id int64 `json:"id"`
+}
+
+type GetAdminResp struct {
+	BaseResp
+	Admin AdminInfo `json:"admin"`
+}
+
+type GetCategoryReq struct {
+	Id int64 `json:"id"`
+}
+
+type GetCategoryResp struct {
+	BaseResp
+	CategoryInfo CategoryInfo `json:"category_info"`
+}
+
+type GetCommentReq struct {
+	Id int64 `json:"id"`
+}
+
+type GetCommentResp struct {
+	BaseResp
+	Comment CommentInfo `json:"comment"`
+}
+
+type GetPostReq struct {
+	Id int64 `path:"id"`
+}
+
+type GetPostResp struct {
+	BaseResp
+	Post PostInfo `json:"post"`
+}
+
+type GetUserReq struct {
+	UserId int64 `json:"user_id"`
+}
+
+type GetUserResp struct {
+	BaseResp
+	UserInfo UserInfo `json:"user_info"`
+}
+
+type ListCategoryReq struct {
+	Page     int64 `json:"page",default:1`
+	PageSize int64 `json:"page_size",default:10`
+}
+
+type ListCategoryResp struct {
+	BaseResp
+	CategoryList []CategoryInfo `json:"category_list"`
+	Total        int64          `json:"total"`
+	TotalPages   int64          `json:"total_pages"`
+	CurrentPage  int64          `json:"current_page"`
+	HasNextPage  bool           `json:"has_next_page"`
+	HasPrevPage  bool           `json:"has_prev_page"`
+}
+
+type ListCommentReq struct {
+	PaginationReq
+	PostId int64 `json:"post_id"`
+}
+
+type ListCommentResp struct {
+	BaseResp
+	PaginationResp
+	Comments []CommentInfo `json:"comments"`
+}
+
+type ListPostReq struct {
+	CategoryId int64  `form:"category_id"`
+	UserId     int64  `form:"user_id,optional"`
+	Status     int64  `form:"status,optional"`
+	LastId     int64  `form:"last_id"`
+	Limit      int64  `form:"limit"`
+	OrderBy    string `form:"order_by"`
+	OrderType  string `form:"order_type"`
+}
+
+type ListPostResp struct {
+	BaseResp
+	Posts   []PostInfo `json:"posts"`
+	HasMore bool       `json:"has_more"`
+	LastId  int64      `json:"last_id"`
+}
+
+type LoginAdminReq struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Phone    string `json:"phone"`
+	Password string `json:"password"`
+}
+
+type LoginAdminResp struct {
+	BaseResp
+	Admin        AdminInfo `json:"admin"`
+	Token        string    `json:"token"`
+	Expire       int64     `json:"expire"`
+	RefreshToken string    `json:"refresh_token"`
+}
+
+type LoginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type LoginResp struct {
+	BaseResp
+	Token        string `json:"token"`
+	Expire       int64  `json:"expire"`
+	RefreshToken string `json:"refresh_token"`
+	UserId       int64  `json:"user_id"`
+}
+
+type PaginationReq struct {
+	Page     int64 `form:"page,optional"`      // 页码，可选，默认1
+	PageSize int64 `form:"page_size,optional"` // 每页大小，可选，默认20
+}
+
+type PaginationResp struct {
+	BaseResp
+	Total    int64 `json:"total"`     // 总记录数
+	Page     int64 `json:"page"`      // 当前页码
+	PageSize int64 `json:"page_size"` // 每页大小
+}
+
+type PostInfo struct {
+	Id          int64  `json:"id"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	UserId      int64  `json:"user_id"`
+	CategoryId  int64  `json:"category_id"`
+	Status      int64  `json:"status"`
+	IsTop       int64  `json:"is_top"`
+	IsHot       int64  `json:"is_hot"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type RegisterReq struct {
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type RegisterResp struct {
+	BaseResp
+	UserId int64 `json:"user_id"`
+}
+
+type UpdateAdminReq struct {
+	Id       int64  `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Username string `json:"username"`
+	Phone    string `json:"phone"`
+}
+
+type UpdateAdminResp struct {
+	BaseResp
+	Id int64 `json:"id"`
+}
+
+type UpdateCategoryReq struct {
+	Id          int64  `json:"id"`
+	Name        string `json:"name",optional`
+	Description string `json:"description",optional`
+	SortOrder   int64  `json:"sort_order",optional`
+	IsActive    int64  `json:"is_active",optional`
+}
+
+type UpdateCategoryResp struct {
+	BaseResp
+	CategoryInfo CategoryInfo `json:"category_info"`
+}
+
+type UpdateCommentReq struct {
+	Id      int64  `json:"id"`
+	Content string `json:"content"`
+}
+
+type UpdateCommentResp struct {
+	BaseResp
+}
+
+type UpdatePostReq struct {
+	Id         int64  `path:"id"`
+	Title      string `json:"title,optional"`
+	Content    string `json:"content,optional"`
+	CategoryId int64  `json:"category_id,optional"`
+	Status     int64  `json:"status,optional"`
+}
+
+type UpdatePostResp struct {
+	BaseResp
+	PostId int64 `json:"post_id"`
+}
+
+type UserInfo struct {
+	Id            int64  `json:"id"`
+	Email         string `json:"email"`
+	Username      string `json:"username"`
+	Avatar        string `json:"avatar"`
+	Signature     string `json:"signature"`
+	Birthday      string `json:"birthday"`
+	Phone         string `json:"phone"`
+	Status        int64  `json:"status"`
+	IsDeleted     int64  `json:"is_deleted"`
+	LastLoginTime int64  `json:"last_login_time"`
+	CreatedTime   int64  `json:"created_time"`
+	UpdatedTime   int64  `json:"updated_time"`
 }

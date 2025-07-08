@@ -1,0 +1,83 @@
+syntax = "v1"
+
+info (
+    version: "1.0.0"
+    title: "分类实例"
+    description: "分类实例相关的api请求与回复定义"
+    author: "qiuqiu"
+    email: "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type CategoryInfo {
+    Id int64 `json:"id"`
+    Name string `json:"name"`
+    Description string `json:"description"`
+    SortOrder int64 `json:"sort_order"`
+    IsActive int64 `json:"is_active"`
+    CreatedTime int64 `json:"created_time"`
+    UpdatedTime int64 `json:"updated_time"`
+}
+
+type (
+    CreateCategoryReq {
+        Name string `json:"name"`
+        Description string `json:"description",optional`
+        SortOrder int64 `json:"sort_order"`
+        IsActive int64 `json:"is_active",default:1`
+    }
+    CreateCategoryResp {
+        BaseResp
+        CategoryId int64 `json:"category_id"`
+    }
+)
+
+type (
+    UpdateCategoryReq {
+        Id int64 `json:"id"`
+        Name string `json:"name",optional`
+        Description string `json:"description",optional`
+        SortOrder int64 `json:"sort_order",optional`
+        IsActive int64 `json:"is_active",optional`
+    }
+    UpdateCategoryResp {
+        BaseResp
+        CategoryInfo CategoryInfo `json:"category_info"`
+    }
+)
+
+type (
+    DeleteCategoryReq {
+        Id int64 `json:"id"`
+    }
+    DeleteCategoryResp {
+        BaseResp
+    }
+)
+
+type (
+    GetCategoryReq {
+        Id int64 `json:"id"`
+    }
+    GetCategoryResp {
+        BaseResp
+        CategoryInfo CategoryInfo `json:"category_info"`
+    }
+)
+
+type (
+    ListCategoryReq {
+        Page int64 `json:"page",default:1`
+        PageSize int64 `json:"page_size",default:10`
+    }
+    ListCategoryResp {
+        BaseResp
+        CategoryList []CategoryInfo `json:"category_list"`
+        Total int64 `json:"total"`
+        TotalPages int64 `json:"total_pages"`
+        CurrentPage int64 `json:"current_page"`
+        HasNextPage bool `json:"has_next_page"`
+        HasPrevPage bool `json:"has_prev_page"`
+    }
+)

@@ -8,24 +8,21 @@ info (
     email: "rhysqiuj@gmail.com"
 )
 
-type UserInfo {
-    Id             int64
-    Email          string
-    Password       string
-    Username       string
-    Avatar         string
-    Signature      string
-    BirthdayStr    string
-    Role           string
-    Status         string
-    IsDeleted      int64
-    CreatedTimeStr string
-    UpdatedTimeStr string
-}
+import "../common/common.api"
 
-type BaseResp {
-    Code    int64
-    Message string
+type UserInfo {
+    Id int64 `json:"id"`
+    Email string `json:"email"`
+    Username string `json:"username"`
+    Avatar string `json:"avatar"`
+    Signature string `json:"signature"`
+    Birthday string `json:"birthday"`
+    Phone string `json:"phone"`
+    Status int64 `json:"status"`
+    IsDeleted int64 `json:"is_deleted"`
+    LastLoginTime int64 `json:"last_login_time"`
+    CreatedTime int64 `json:"created_time"`
+    UpdatedTime int64 `json:"updated_time"`
 }
 
 type (
@@ -55,10 +52,10 @@ type (
 )
 
 type (
-    GetInfoReq {
+    GetUserReq {
         UserId int64 `json:"user_id"`
     }
-    GetInfoResp {
+    GetUserResp {
         BaseResp
         UserInfo UserInfo `json:"user_info"`
     }
