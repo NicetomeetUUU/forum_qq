@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"errors"
-
+	"fmt"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
 	"forum_backend/app/forum/model/post"
@@ -27,24 +27,40 @@ func NewListPostsLogic(ctx context.Context, svcCtx *svc.ServiceContext) *ListPos
 
 func (l *ListPostsLogic) ListPosts(req *types.ListPostReq) (resp *types.ListPostResp, err error) {
 	if err = l.checkListPostReq(req); err != nil {
-		l.Logger.Errorf("check list post req error: %v", err)
-		return l.generateResp(nil, false, 0, 400, "check list post req error"), err
+		errstr := fmt.Sprintf("check list post req failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, false, 0, 400, errstr), err
 	}
+	postList, err := l.svcCtx.PostModel.FindPostList(l.ctx, req.PageSize, req.LastIndex, req.OrderBy, req.OrderType)
+	if err != nil {
+		errstr := fmt.Sprintf("find more post failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, false, 0, 400, errstr), err
+	}
+	hasMore := false
+	if len(postList) == int(req.PageSize) {
+		hasMore = true
+	}
+	lastIndex := int64(0)
+	if len(postList) > 0 {
+		lastIndex = req.LastIndex + int64(len(postList))
+	}
+	resp = l.generateResp(postList, hasMore, lastIndex, 200, "list posts success!")
 	return
 }
 
 func (l *ListPostsLogic) checkListPostReq(req *types.ListPostReq) error {
-	if req.Limit <= 0 {
-		return errors.New("limit is required, limit must be greater than 0")
+	if req.PageSize <= 0 {
+		return errors.New("pageSize is required, pageSize must be greater than 0")
 	}
-	if req.LastId < 0 {
-		return errors.New("lastId is required, lastId must be greater than 0")
+	if req.LastIndex < 0 {
+		return errors.New("lastIndex is required, lastIndex must be greater than 0")
 	}
 	if req.CategoryId <= 0 {
 		return errors.New("categoryId is required, categoryId must be greater than 0")
 	}
-	if req.OrderBy == "" || (req.OrderBy != "created_at" && req.OrderBy != "updated_at" && req.OrderBy != "view_count" && req.OrderBy != "like_count" && req.OrderBy != "comment_count") {
-		return errors.New("orderBy is required, orderBy must be 'created_at' or 'updated_at' or 'view_count' or 'like_count' or 'comment_count'")
+	if req.OrderBy == "" || (req.OrderBy != "created_time" && req.OrderBy != "updated_time" && req.OrderBy != "view_count" && req.OrderBy != "like_count" && req.OrderBy != "comment_count") {
+		return errors.New("orderBy is required, orderBy must be 'created_time' or 'updated_time' or 'view_count' or 'like_count' or 'comment_count'")
 	}
 	if req.OrderType == "" || (req.OrderType != "asc" && req.OrderType != "desc") {
 		return errors.New("orderType is required, orderType must be 'asc' or 'desc'")

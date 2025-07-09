@@ -5,7 +5,7 @@ Port: 8888
 Log:
   ServiceName: forum-api
   Mode: file
-  Path: /Users/qiuqiu/Desktop/forum_backend/logs/forum-api.log
+  Path: /Users/lilithgames/code/qq_forum/forum_backend/logs/forum-api.log  
   Level: info
   KeepDays: 7
   Compress: true

@@ -3,7 +3,7 @@ package category
 import (
 	"context"
 	"errors"
-
+	"fmt"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
 
@@ -26,24 +26,60 @@ func NewDeleteCategoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *De
 
 func (l *DeleteCategoryLogic) DeleteCategory(req *types.DeleteCategoryReq) (resp *types.DeleteCategoryResp, err error) {
 	if req.Id <= 0 {
-		l.Logger.Infof("id is invalid")
-		return l.generateResp(400, "id is invalid"), errors.New("id is invalid")
+		errorstr := "id is invalid, id must be greater than 0"
+		l.Logger.Infof(errorstr)
+		return l.generateResp("none", 400, errorstr), errors.New(errorstr)
 	}
-	err = l.svcCtx.CategoryModel.Delete(l.ctx, req.Id)
+	category, err := l.svcCtx.CategoryModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		l.Logger.Errorf("delete category error: %v", err)
-		return l.generateResp(400, "delete category error"), err
+		errstr := fmt.Sprintf("find category failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp("none", 400, errstr), err
 	}
-	l.Logger.Infof("delete category success!")
-	resp = l.generateResp(200, "success")
-	return
+	if category.IsActive == 1 {
+		l.Logger.Infof("category is active, the soft delete will be executed.")
+		err = l.svcCtx.CategoryModel.SoftDelete(l.ctx, req.Id)
+		if err != nil {
+			errstr := fmt.Sprintf("soft delete category failed: %v", err)
+			l.Logger.Errorf(errstr)
+			return l.generateResp("soft", 400, errstr), err
+		}
+		l.Logger.Infof("soft delete category success, now the category is inactive!")
+		resp = l.generateResp("soft", 200, "success")
+		return
+	} else {
+		l.Logger.Infof("category is inactive, the hard delete will be executed.")
+		var postCount int64
+		postCount, err = l.svcCtx.PostModel.CountPostsByCategoryId(l.ctx, req.Id)
+		if err != nil {
+			errstr := fmt.Sprintf("count posts by category id failed: %v", err)
+			l.Logger.Errorf(errstr)
+			return l.generateResp("hard", 400, errstr), err
+		}
+		if postCount > 0 {
+			errstr := fmt.Sprintf("category: %d has %d posts, can't delete, please delete posts first",
+				req.Id, postCount)
+			l.Logger.Errorf(errstr)
+			return l.generateResp("hard", 400, errstr), err
+		}
+		err = l.svcCtx.CategoryModel.HardDelete(l.ctx, req.Id)
+		if err != nil {
+			errstr := fmt.Sprintf("hard delete category failed: %v", err)
+			l.Logger.Errorf(errstr)
+			return l.generateResp("hard", 400, errstr), err
+		}
+		l.Logger.Infof("hard delete category success, now the category is deleted!")
+		resp = l.generateResp("hard", 200, "success")
+		return
+	}
 }
 
-func (l *DeleteCategoryLogic) generateResp(code int64, message string) *types.DeleteCategoryResp {
+func (l *DeleteCategoryLogic) generateResp(deleteType string, code int64, message string) *types.DeleteCategoryResp {
 	return &types.DeleteCategoryResp{
 		BaseResp: types.BaseResp{
 			Code:    code,
 			Message: message,
 		},
+		DeleteType: deleteType,
 	}
 }

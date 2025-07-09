@@ -3,6 +3,8 @@ package category
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
@@ -29,22 +31,26 @@ func NewUpdateCategoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Up
 
 func (l *UpdateCategoryLogic) UpdateCategory(req *types.UpdateCategoryReq) (resp *types.UpdateCategoryResp, err error) {
 	if req.Id <= 0 {
-		l.Logger.Infof("id is invalid")
-		return l.generateResp(nil, 400, "id is invalid"), errors.New("id is invalid")
+		errstr := "id is invalid, id must be greater than 0"
+		l.Logger.Infof(errstr)
+		return l.generateResp(nil, 400, errstr), errors.New(errstr)
 	}
 	category, err := l.svcCtx.CategoryModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		l.Logger.Errorf("get category error: %v", err)
-		return l.generateResp(nil, 400, "get category error"), err
+		errstr := fmt.Sprintf("get category failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 400, errstr), err
 	}
-	category.Name = req.Name
-	category.Description = sql.NullString{String: req.Description, Valid: req.Description != ""}
-	category.SortOrder = req.SortOrder
-	category.IsActive = req.IsActive
-	err = l.svcCtx.CategoryModel.Update(l.ctx, category)
+	if category.IsActive == 0 {
+		errstr := "category is inactive, can't update"
+		l.Logger.Infof(errstr)
+		return l.generateResp(nil, 400, errstr), errors.New(errstr)
+	}
+	err = l.svcCtx.CategoryModel.Update(l.ctx, l.generateCategoryInfo(req))
 	if err != nil {
-		l.Logger.Errorf("update category error: %v", err)
-		return l.generateResp(nil, 400, "update category error"), err
+		errstr := fmt.Sprintf("update category by id %d failed: %v", req.Id, err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 400, errstr), err
 	}
 	l.Logger.Infof("update category success!")
 	resp = l.generateResp(category, 200, "success")
@@ -66,5 +72,16 @@ func (l *UpdateCategoryLogic) generateResp(category *category.Category, code int
 			CreatedTime: category.CreatedTime.Unix(),
 			UpdatedTime: category.UpdatedTime.Unix(),
 		},
+	}
+}
+
+func (l *UpdateCategoryLogic) generateCategoryInfo(req *types.UpdateCategoryReq) *category.Category {
+	return &category.Category{
+		Id:          req.Id,
+		Name:        req.Name,
+		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
+		SortOrder:   req.SortOrder,
+		IsActive:    req.IsActive,
+		UpdatedTime: time.Now(),
 	}
 }

@@ -1,0 +1,5 @@
+syntax = "v1";
+
+info (
+    title: "点赞"
+)

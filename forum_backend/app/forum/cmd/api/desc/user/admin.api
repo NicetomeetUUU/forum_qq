@@ -1,86 +1,86 @@
 syntax = "v1"
 
 info (
-    version: "1.0.0"
-    title: "管理员实例"
-    description: "管理员实例相关的api请求与回复定义"
-    author: "qiuqiu"
-    email: "rhysqiuj@gmail.com"
+	version:     "1.0.0"
+	title:       "管理员实例"
+	description: "管理员实例相关的api请求与回复定义"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
 )
 
 import "../common/common.api"
 
 type AdminInfo {
-    Id int64 `json:"id"`
-    Email string `json:"email"`
-    Password string `json:"password"`
-    Username string `json:"username"`
-    Phone string `json:"phone"`
-    Status int64 `json:"status"`
-    IsDeleted int64 `json:"is_deleted"`
-    CreatedTime int64 `json:"created_time"`
-    UpdatedTime int64 `json:"updated_time"`
+	Id          int64  `json:"id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	Username    string `json:"username"`
+	Phone       string `json:"phone"`
+	Status      int64  `json:"status"`
+	IsDeleted   int64  `json:"is_deleted"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
 }
 
 type (
-    CreateAdminReq {
-        Email string `json:"email"`
-        Password string `json:"password"`
-        Username string `json:"username"`
-        Phone string `json:"phone"`
-    }
-    CreateAdminResp {
-        BaseResp
-        Admin AdminInfo `json:"admin"`
-    }
+	CreateAdminReq {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Username string `json:"username"`
+		Phone    string `json:"phone"`
+	}
+	CreateAdminResp {
+		BaseResp
+		Admin AdminInfo `json:"admin"`
+	}
 )
 
 type (
-    LoginAdminReq {
-        Email string `json:"email"`
-        Username string `json:"username"`
-        Phone string `json:"phone"`
-        Password string `json:"password"`
-    }
-    LoginAdminResp {
-        BaseResp
-        Admin AdminInfo `json:"admin"`
-        Token string `json:"token"`
-        Expire int64 `json:"expire"`
-        RefreshToken string `json:"refresh_token"`
-    }
+	LoginAdminReq {
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Phone    string `json:"phone"`
+		Password string `json:"password"`
+	}
+	LoginAdminResp {
+		BaseResp
+		Admin        AdminInfo `json:"admin"`
+		Token        string    `json:"token"`
+		Expire       int64     `json:"expire"`
+		RefreshToken string    `json:"refresh_token"`
+	}
 )
 
 type (
-    GetAdminReq {
-        Id int64 `json:"id"`
-    }
-    GetAdminResp {
-        BaseResp
-        Admin AdminInfo `json:"admin"`
-    }
+	GetAdminReq {
+		Id int64 `form:"id"`
+	}
+	GetAdminResp {
+		BaseResp
+		Admin AdminInfo `json:"admin"`
+	}
 )
 
 type (
-    UpdateAdminReq {
-        Id int64 `json:"id"`
-        Email string `json:"email"`
-        Password string `json:"password"`
-        Username string `json:"username"`
-        Phone string `json:"phone"`
-    }
-    UpdateAdminResp {
-        BaseResp
-        Id int64 `json:"id"`
-    }
+	UpdateAdminReq {
+		Id       int64  `json:"id"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+		Username string `json:"username"`
+		Phone    string `json:"phone"`
+	}
+	UpdateAdminResp {
+		BaseResp
+		Id int64 `json:"id"`
+	}
 )
 
 type (
-    DeleteAdminReq {
-        Id int64 `json:"id"`
-    }
-    DeleteAdminResp {
-        BaseResp
-    }
+	DeleteAdminReq {
+		Id int64 `json:"id"`
+	}
+	DeleteAdminResp {
+		BaseResp
+	}
 )
 

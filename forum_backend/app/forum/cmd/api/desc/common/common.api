@@ -1,29 +1,30 @@
 syntax = "v1"
 
 info (
-    version: "1.0.0"
-    title: "基础实例"
-    description: "基础实例相关api"
-    author: "qiuqiu"
-    email: "rhysqiuj@gmail.com"
+	version:     "1.0.0"
+	title:       "基础实例"
+	description: "基础实例相关api"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
 )
 
-// 基础响应结构
+// 基础响应结构 go-zero 插件
 type BaseResp {
-    Code    int64  `json:"code"`    // 响应码
-    Message string `json:"message"`  // 响应信息
+	Code    int64  `json:"code"` // 响应码
+	Message string `json:"message"` // 响应信息
 }
 
 // 分页请求参数
 type PaginationReq {
-    Page     int64 `form:"page,optional"`      // 页码，可选，默认1
-    PageSize int64 `form:"page_size,optional"` // 每页大小，可选，默认20
+	Page     int64 `form:"page,optional"` // 页码，可选，默认1
+	PageSize int64 `form:"page_size,optional"` // 每页大小，可选，默认10
 }
 
 // 分页响应结构
 type PaginationResp {
-    BaseResp
-    Total    int64 `json:"total"`     // 总记录数
-    Page     int64 `json:"page"`      // 当前页码
-    PageSize int64 `json:"page_size"` // 每页大小
-} 
+	BaseResp
+	Total    int64 `json:"total"` // 总记录数
+	Page     int64 `json:"page"` // 当前页码
+	PageSize int64 `json:"page_size"` // 每页大小
+}
+

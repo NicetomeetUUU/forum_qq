@@ -3,6 +3,7 @@ package category
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
@@ -27,13 +28,15 @@ func NewGetCategoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCa
 
 func (l *GetCategoryLogic) GetCategory(req *types.GetCategoryReq) (resp *types.GetCategoryResp, err error) {
 	if req.Id <= 0 {
-		l.Logger.Infof("id is invalid")
-		return l.generateResp(nil, 400, "id is invalid"), errors.New("id is invalid")
+		errorstr := "id is invalid, id must be greater than 0"
+		l.Logger.Infof(errorstr)
+		return l.generateResp(nil, 400, errorstr), errors.New(errorstr)
 	}
 	category, err := l.svcCtx.CategoryModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		l.Logger.Errorf("get category error: %v", err)
-		return l.generateResp(nil, 400, "get category error"), err
+		errstr := fmt.Sprintf("get category failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 400, errstr), err
 	}
 	l.Logger.Infof("get category success!")
 	resp = l.generateResp(category, 200, "success")

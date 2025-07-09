@@ -3,10 +3,11 @@ package post
 import (
 	"context"
 	"errors"
-
+	"fmt"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
 	"forum_backend/app/forum/model/post"
+	"time"
 
 	"database/sql"
 
@@ -29,27 +30,24 @@ func NewCreatePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Create
 
 func (l *CreatePostLogic) CreatePost(req *types.CreatePostReq) (resp *types.CreatePostResp, err error) {
 	if err := l.checkPostInfo(req); err != nil {
-		l.Logger.Infof("checkPostInfo error: %v", err)
-		return l.generateResp(0, 400, "checkPostInfo error"), err
+		errstr := fmt.Sprintf("check post info failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
-	userId := l.ctx.Value("userId").(int64)
-	sqlResult, err := l.svcCtx.PostModel.Insert(l.ctx, &post.Post{
-		Title:   req.Title,
-		Content: req.Content,
-		UserId:  userId,
-		CategoryId: sql.NullInt64{
-			Int64: req.CategoryId,
-			Valid: req.CategoryId != 0,
-		},
-	})
+	// userId := l.ctx.Value("userId").(int64)
+	userId := req.UserId
+	postInfo := l.generatePostInfo(req, userId)
+	sqlResult, err := l.svcCtx.PostModel.Insert(l.ctx, postInfo)
 	if err != nil {
-		l.Logger.Errorf("insert post error: %v", err)
-		return l.generateResp(0, 400, "insert post error"), err
+		errstr := fmt.Sprintf("insert post failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
 	postId, err := sqlResult.LastInsertId()
 	if err != nil {
-		l.Logger.Errorf("get post id error: %v", err)
-		return l.generateResp(0, 400, "get post id error"), err
+		errstr := fmt.Sprintf("get post id failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
 	l.Logger.Infof("create post success! post id: %d", postId)
 	resp = l.generateResp(postId, 200, "create post success!")
@@ -63,6 +61,21 @@ func (l *CreatePostLogic) checkPostInfo(postInfo *types.CreatePostReq) error {
 	if postInfo.Content == "" {
 		return errors.New("content is required")
 	}
+	if postInfo.CategoryId > 0 {
+		targetCategory, err := l.svcCtx.CategoryModel.FindOne(l.ctx, postInfo.CategoryId)
+		if err != nil {
+			errstr := fmt.Sprintf("get category: %d error: %v", postInfo.CategoryId, err)
+			return errors.New(errstr)
+		}
+		if targetCategory == nil {
+			errstr := fmt.Sprintf("category: %d not found", postInfo.CategoryId)
+			return errors.New(errstr)
+		}
+		if targetCategory.IsActive == 0 {
+			errstr := fmt.Sprintf("category: %d is inactive", postInfo.CategoryId)
+			return errors.New(errstr)
+		}
+	}
 	return nil
 }
 
@@ -73,5 +86,25 @@ func (l *CreatePostLogic) generateResp(postId int64, code int64, message string)
 			Message: message,
 		},
 		PostId: postId,
+	}
+}
+
+func (l *CreatePostLogic) generatePostInfo(postInfo *types.CreatePostReq, userId int64) *post.Post {
+	return &post.Post{
+		Title:   postInfo.Title,
+		Content: postInfo.Content,
+		UserId:  userId,
+		CategoryId: sql.NullInt64{
+			Int64: postInfo.CategoryId,
+			Valid: postInfo.CategoryId > 0,
+		},
+		ViewCount:    0,
+		LikeCount:    0,
+		CommentCount: 0,
+		Status:       1,
+		IsTop:        0,
+		IsHot:        0,
+		CreatedTime:  time.Now(),
+		UpdatedTime:  time.Now(),
 	}
 }

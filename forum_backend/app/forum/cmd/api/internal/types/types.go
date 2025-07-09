@@ -56,9 +56,8 @@ type CreateAdminResp struct {
 
 type CreateCategoryReq struct {
 	Name        string `json:"name"`
-	Description string `json:"description",optional`
+	Description string `json:"description,optional"`
 	SortOrder   int64  `json:"sort_order"`
-	IsActive    int64  `json:"is_active",default:1`
 }
 
 type CreateCategoryResp struct {
@@ -75,10 +74,11 @@ type CreateCommentReq struct {
 
 type CreateCommentResp struct {
 	BaseResp
-	Comment CommentInfo `json:"comment"`
+	CommentId int64 `json:"comment_id"`
 }
 
 type CreatePostReq struct {
+	UserId     int64  `json:"user_id"`
 	Title      string `json:"title"`
 	Content    string `json:"content"`
 	CategoryId int64  `json:"category_id,optional"`
@@ -103,6 +103,7 @@ type DeleteCategoryReq struct {
 
 type DeleteCategoryResp struct {
 	BaseResp
+	DeleteType string `json:"delete_type"`
 }
 
 type DeleteCommentReq struct {
@@ -114,11 +115,13 @@ type DeleteCommentResp struct {
 }
 
 type DeletePostReq struct {
-	Id int64 `path:"id"`
+	Id     int64 `json:"id"`
+	UserId int64 `json:"user_id"`
 }
 
 type DeletePostResp struct {
 	BaseResp
+	DeleteType string `json:"delete_type"`
 }
 
 type GetAdminReq struct {
@@ -131,7 +134,7 @@ type GetAdminResp struct {
 }
 
 type GetCategoryReq struct {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type GetCategoryResp struct {
@@ -149,7 +152,7 @@ type GetCommentResp struct {
 }
 
 type GetPostReq struct {
-	Id int64 `path:"id"`
+	Id int64 `form:"id"`
 }
 
 type GetPostResp struct {
@@ -158,7 +161,7 @@ type GetPostResp struct {
 }
 
 type GetUserReq struct {
-	UserId int64 `json:"user_id"`
+	UserId int64 `form:"user_id"`
 }
 
 type GetUserResp struct {
@@ -167,8 +170,7 @@ type GetUserResp struct {
 }
 
 type ListCategoryReq struct {
-	Page     int64 `json:"page",default:1`
-	PageSize int64 `json:"page_size",default:10`
+	PaginationReq
 }
 
 type ListCategoryResp struct {
@@ -196,8 +198,8 @@ type ListPostReq struct {
 	CategoryId int64  `form:"category_id"`
 	UserId     int64  `form:"user_id,optional"`
 	Status     int64  `form:"status,optional"`
-	LastId     int64  `form:"last_id"`
-	Limit      int64  `form:"limit"`
+	LastIndex  int64  `form:"last_index"`
+	PageSize   int64  `form:"page_size"`
 	OrderBy    string `form:"order_by"`
 	OrderType  string `form:"order_type"`
 }
@@ -239,7 +241,7 @@ type LoginResp struct {
 
 type PaginationReq struct {
 	Page     int64 `form:"page,optional"`      // 页码，可选，默认1
-	PageSize int64 `form:"page_size,optional"` // 每页大小，可选，默认20
+	PageSize int64 `form:"page_size,optional"` // 每页大小，可选，默认10
 }
 
 type PaginationResp struct {
@@ -266,6 +268,7 @@ type RegisterReq struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Phone    string `json:"phone"`
 }
 
 type RegisterResp struct {
@@ -288,10 +291,10 @@ type UpdateAdminResp struct {
 
 type UpdateCategoryReq struct {
 	Id          int64  `json:"id"`
-	Name        string `json:"name",optional`
-	Description string `json:"description",optional`
-	SortOrder   int64  `json:"sort_order",optional`
-	IsActive    int64  `json:"is_active",optional`
+	Name        string `json:"name,optional"`
+	Description string `json:"description,optional"`
+	SortOrder   int64  `json:"sort_order,optional"`
+	IsActive    int64  `json:"is_active,optional"`
 }
 
 type UpdateCategoryResp struct {
@@ -309,7 +312,8 @@ type UpdateCommentResp struct {
 }
 
 type UpdatePostReq struct {
-	Id         int64  `path:"id"`
+	Id         int64  `json:"id"`
+	UserId     int64  `json:"user_id"`
 	Title      string `json:"title,optional"`
 	Content    string `json:"content,optional"`
 	CategoryId int64  `json:"category_id,optional"`
@@ -319,6 +323,19 @@ type UpdatePostReq struct {
 type UpdatePostResp struct {
 	BaseResp
 	PostId int64 `json:"post_id"`
+}
+
+type UpdateUserReq struct {
+	UserId   int64  `form:"user_id"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Phone    string `json:"phone"`
+}
+
+type UpdateUserResp struct {
+	BaseResp
+	UserId int64 `json:"user_id"`
 }
 
 type UserInfo struct {

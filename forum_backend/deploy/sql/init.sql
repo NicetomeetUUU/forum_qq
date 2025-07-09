@@ -47,7 +47,7 @@ CREATE TABLE `admin` (
 DROP TABLE IF EXISTS `category`;
 CREATE TABLE `category` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_category_id',
-    `name` VARCHAR(100) NOT NULL COMMENT 'category name',
+    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'category name',
     `description` TEXT COMMENT 'category description',
     `sort_order` INT NOT NULL DEFAULT 0 COMMENT 'sort order',
     `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1: active, 0: inactive',
@@ -58,8 +58,8 @@ CREATE TABLE `category` (
 -- 帖子表
 DROP TABLE IF EXISTS `post`;
 CREATE TABLE `post` (
-    `id` bigint AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_post_id',
-    `title` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'title',
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_post_id',
+    `title` VARCHAR(255) NOT NULL UNIQUE COMMENT 'title',
     `content` TEXT NOT NULL COMMENT 'content',
     `user_id` BIGINT NOT NULL COMMENT 'user id',
     `category_id` BIGINT DEFAULT NULL COMMENT 'category id',
@@ -79,7 +79,7 @@ CREATE TABLE `post` (
 -- 评论表
 DROP TABLE IF EXISTS `comment`;
 CREATE TABLE `comment` (
-    `id` bigint AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_comment_id',
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_comment_id',
     `content` TEXT NOT NULL COMMENT 'content',
     `user_id` BIGINT NOT NULL COMMENT 'user id',
     `post_id` BIGINT NOT NULL COMMENT 'post id',

@@ -3,7 +3,7 @@ package post
 import (
 	"context"
 	"errors"
-
+	"fmt"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
 	"forum_backend/app/forum/model/post"
@@ -27,20 +27,29 @@ func NewGetPostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetPostLo
 
 func (l *GetPostLogic) GetPost(req *types.GetPostReq) (resp *types.GetPostResp, err error) {
 	if req.Id <= 0 {
-		l.Logger.Infof("id is invalid")
-		return l.generateResp(nil, 400, "id is invalid"), errors.New("id is invalid")
+		errstr := "id is invalid, id must be greater than 0"
+		l.Logger.Infof(errstr)
+		return l.generateResp(nil, 400, errstr), errors.New(errstr)
 	}
 	post, err := l.svcCtx.PostModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		l.Logger.Errorf("find post error: %v", err)
-		return l.generateResp(nil, 400, "find post error"), err
+		errstr := fmt.Sprintf("find post by id %d failed: %v", req.Id, err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 400, errstr), err
 	}
 	userId := l.ctx.Value("userId").(int64)
 	if post.UserId != userId {
-		l.Logger.Errorf("user id not match")
-		return l.generateResp(nil, 400, "user id not match"), errors.New("user id not match")
+		errstr := "user id not match"
+		l.Logger.Infof(errstr)
+		return l.generateResp(nil, 400, errstr), errors.New(errstr)
 	}
 	l.Logger.Infof("get post success! post id: %d", post.Id)
+	err = l.svcCtx.PostModel.UpdateViewCount(l.ctx, post.Id)
+	if err != nil {
+		errstr := fmt.Sprintf("update view count by post id %d failed: %v", post.Id, err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 400, errstr), err
+	}
 	resp = l.generateResp(post, 200, "get post success!")
 	return
 }

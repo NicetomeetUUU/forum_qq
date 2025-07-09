@@ -3,6 +3,7 @@ package category
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
@@ -26,31 +27,42 @@ func NewListCategoriesLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Li
 }
 
 func (l *ListCategoriesLogic) ListCategories(req *types.ListCategoryReq) (resp *types.ListCategoryResp, err error) {
-	if err := l.checkReq(req); err != nil {
-		l.Logger.Infof("check req error: %v", err)
-		return l.generateResp(nil, 0, req.Page, req.PageSize, 400, "check req error"), err
+	if err := l.checkListCategoryReq(req); err != nil {
+		errstr := fmt.Sprintf("check req failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 0, req.Page, req.PageSize, 400, errstr), err
+	}
+	if req.Page == 0 {
+		req.Page = 1
+	}
+	if req.PageSize == 0 {
+		req.PageSize = 10
 	}
 	categoryList, total, err := l.svcCtx.CategoryModel.FindCategoryList(l.ctx, req.Page, req.PageSize)
 	if err != nil {
-		l.Logger.Errorf("list categories error: %v", err)
-		return l.generateResp(nil, 0, req.Page, req.PageSize, 400, "list categories error"), err
+		errstr := fmt.Sprintf("list categories failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(nil, 0, req.Page, req.PageSize, 400, errstr), err
 	}
 	l.Logger.Infof("list categories success!")
 	resp = l.generateResp(categoryList, total, req.Page, req.PageSize, 200, "success")
 	return
 }
 
-func (l *ListCategoriesLogic) checkReq(req *types.ListCategoryReq) (err error) {
-	if req.Page <= 0 {
+func (l *ListCategoriesLogic) checkListCategoryReq(req *types.ListCategoryReq) (err error) {
+	if req.Page < 0 {
 		return errors.New("page is invalid")
 	}
-	if req.PageSize <= 0 {
+	if req.PageSize < 0 {
 		return errors.New("page size is invalid")
 	}
 	return nil
 }
 
 func (l *ListCategoriesLogic) generateResp(categoryList []*category.Category, total int64, page int64, pageSize int64, code int64, message string) *types.ListCategoryResp {
+	totalPages := (total + pageSize - 1) / pageSize
+	hasNextPage := page < totalPages
+	hasPrevPage := page > 1 && page*pageSize < total
 	return &types.ListCategoryResp{
 		BaseResp: types.BaseResp{
 			Code:    code,
@@ -58,10 +70,10 @@ func (l *ListCategoriesLogic) generateResp(categoryList []*category.Category, to
 		},
 		CategoryList: l.generateCategoryList(categoryList),
 		Total:        total,
-		TotalPages:   int64(total / pageSize),
+		TotalPages:   totalPages,
 		CurrentPage:  page,
-		HasNextPage:  total > page*pageSize,
-		HasPrevPage:  page > 1 && page*pageSize < total,
+		HasNextPage:  hasNextPage,
+		HasPrevPage:  hasPrevPage,
 	}
 }
 

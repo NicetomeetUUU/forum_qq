@@ -3,6 +3,8 @@ package category
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"forum_backend/app/forum/cmd/api/internal/svc"
 	"forum_backend/app/forum/cmd/api/internal/types"
@@ -29,24 +31,22 @@ func NewCreateCategoryLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cr
 
 func (l *CreateCategoryLogic) CreateCategory(req *types.CreateCategoryReq) (resp *types.CreateCategoryResp, err error) {
 	if err := l.checkCategoryInfo(req); err != nil {
-		l.Logger.Infof("check category info error: %v", err)
-		return l.generateResp(0, 400, "check category info error"), err
+		errstr := fmt.Sprintf("check category info failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
-	category := &category.Category{
-		Name:        req.Name,
-		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
-		SortOrder:   req.SortOrder,
-		IsActive:    req.IsActive,
-	}
-	sqlResult, err := l.svcCtx.CategoryModel.Insert(l.ctx, category)
+	categoryInfo := l.generateCategoryInfo(req)
+	sqlResult, err := l.svcCtx.CategoryModel.Insert(l.ctx, categoryInfo)
 	if err != nil {
-		l.Logger.Errorf("insert category error: %v", err)
-		return l.generateResp(0, 400, "insert category error"), err
+		errstr := fmt.Sprintf("insert category failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
 	categoryId, err := sqlResult.LastInsertId()
 	if err != nil {
-		l.Logger.Errorf("get last insert id error: %v", err)
-		return l.generateResp(0, 400, "get last insert id error"), err
+		errstr := fmt.Sprintf("get last insert id failed: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(0, 400, errstr), err
 	}
 	l.Logger.Infof("create category success!")
 	resp = l.generateResp(categoryId, 200, "success")
@@ -67,5 +67,16 @@ func (l *CreateCategoryLogic) generateResp(categoryId int64, code int64, message
 			Message: message,
 		},
 		CategoryId: categoryId,
+	}
+}
+
+func (l *CreateCategoryLogic) generateCategoryInfo(req *types.CreateCategoryReq) *category.Category {
+	return &category.Category{
+		Name:        req.Name,
+		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
+		SortOrder:   req.SortOrder,
+		IsActive:    1,
+		CreatedTime: time.Now(),
+		UpdatedTime: time.Now(),
 	}
 }
