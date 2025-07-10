@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"github.com/zeromicro/go-zero/core/stores/sqlx"
@@ -28,6 +29,7 @@ type (
 		IncreaseLikeCount(ctx context.Context, id int64) error
 		DecreaseLikeCount(ctx context.Context, id int64) error
 		Restore(ctx context.Context, id int64) error
+		DeletePostByStatusAndTime(ctx context.Context, status string, time time.Time) ([]int64, error)
 	}
 
 	customPostModel struct {
@@ -114,4 +116,23 @@ func (m *customPostModel) Restore(ctx context.Context, id int64) error {
 		return conn.ExecCtx(ctx, query, id)
 	}, cacheKey)
 	return err
+}
+
+func (m *customPostModel) DeletePostByStatusAndTime(ctx context.Context, status string, time time.Time) ([]int64, error) {
+	cacheKeys := make([]string, 0)
+	var postIdList []int64
+	query := fmt.Sprintf("SELECT id FROM %s WHERE status = ? AND updated_time < ?", m.table)
+	err := m.CachedConn.QueryRowsNoCacheCtx(ctx, &postIdList, query, status, time)
+	if err != nil {
+		return nil, err
+	}
+	for _, postId := range postIdList {
+		cacheKeys = append(cacheKeys, fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, postId))
+	}
+	m.CachedConn.DelCacheCtx(ctx, cacheKeys...)
+	query = fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", m.table)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, postIdList)
+	})
+	return postIdList, err
 }

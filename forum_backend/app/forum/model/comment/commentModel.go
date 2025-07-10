@@ -25,6 +25,7 @@ type (
 		FindCommentListByPostId(ctx context.Context, postId int64, lastIndex int64, pageSize int64) ([]*Comment, error)
 		CountCommentsByPostId(ctx context.Context, postId int64) (int64, error)
 		DeleteCommentByParentId(ctx context.Context, parentId int64) error
+		DeleteCommentByPostId(ctx context.Context, postId int64) error
 		IncreaseLikeCount(ctx context.Context, id int64) error
 		DecreaseLikeCount(ctx context.Context, id int64) error
 		UpdateCommentContent(ctx context.Context, id int64, content string) error
@@ -120,6 +121,24 @@ func (m *customCommentModel) deleteCommentRecursively(ctx context.Context, paren
 		}
 	}
 	return nil
+}
+
+func (m *customCommentModel) DeleteCommentByPostId(ctx context.Context, postId int64) error {
+	cacheKeys := make([]string, 0)
+	query := fmt.Sprintf("SELECT id FROM %s WHERE post_id = ?", m.table)
+	var commentIdList []int64
+	err := m.CachedConn.QueryRowsNoCacheCtx(ctx, &commentIdList, query, postId)
+	if err != nil {
+		return err
+	}
+	for _, commentId := range commentIdList {
+		cacheKeys = append(cacheKeys, fmt.Sprintf("%s%d", cacheQqForumCommentIdPrefix, commentId))
+	}
+	query = fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", m.table)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, commentIdList)
+	}, cacheKeys...)
+	return err
 }
 
 func (m *customCommentModel) IncreaseLikeCount(ctx context.Context, id int64) error {

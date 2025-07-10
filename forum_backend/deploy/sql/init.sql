@@ -76,6 +76,18 @@ CREATE TABLE `post` (
     INDEX idx_created_time (created_time)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='post table';
 
+-- 帖子类别表
+DROP TABLE IF EXISTS `post_category`;
+CREATE TABLE `post_category` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_post_category_id',
+    `post_id` BIGINT NOT NULL COMMENT 'post id',
+    `category_id` BIGINT NOT NULL COMMENT 'category id',
+    `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'created time',
+    UNIQUE KEY uk_post_category (post_id, category_id),
+    INDEX idx_post_id (post_id),
+    INDEX idx_category_id (category_id)
+)ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='post category table';
+
 -- 评论表
 DROP TABLE IF EXISTS `comment`;
 CREATE TABLE `comment` (
