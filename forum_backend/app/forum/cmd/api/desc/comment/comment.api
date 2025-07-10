@@ -1,0 +1,79 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "评论实例"
+	description: "评论实例相关的api请求与回复定义"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type CommentInfo {
+	Id          int64  `json:"id"`
+	Content     string `json:"content"`
+	UserId      int64  `json:"user_id"`
+	PostId      int64  `json:"post_id"`
+	ParentId    int64  `json:"parent_id"`
+	LikeCount   int64  `json:"like_count"`
+	Status      string `json:"status"`
+	CreatedTime int64  `json:"created_time"`
+	UpdatedTime int64  `json:"updated_time"`
+}
+
+type (
+	CreateCommentReq {
+		Content  string `json:"content"`
+		UserId   int64  `json:"user_id"`
+		PostId   int64  `json:"post_id"`
+		ParentId int64  `json:"parent_id"`
+	}
+	CreateCommentResp {
+		BaseResp
+		CommentId int64 `json:"comment_id"`
+	}
+)
+
+type (
+	GetCommentReq {
+		Id int64 `form:"id"`
+	}
+	GetCommentResp {
+		BaseResp
+		Comment CommentInfo `json:"comment"`
+	}
+)
+
+type (
+	ListCommentReq {
+		LastIndex int64 `form:"last_index"`
+		PageSize  int64 `form:"page_size"`
+		PostId    int64 `form:"post_id"`
+	}
+	ListCommentResp {
+		BaseResp
+		Comments  []CommentInfo `json:"comments"`
+		LastIndex int64         `json:"last_id"`
+	}
+)
+
+type (
+	UpdateCommentReq {
+		Id      int64  `json:"id"`
+		Content string `json:"content"`
+	}
+	UpdateCommentResp {
+		BaseResp
+	}
+)
+
+type (
+	DeleteCommentReq {
+		Id int64 `json:"id"`
+	}
+	DeleteCommentResp {
+		BaseResp
+	}
+)
+

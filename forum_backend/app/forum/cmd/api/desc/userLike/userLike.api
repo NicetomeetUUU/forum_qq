@@ -1,0 +1,74 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "点赞实例"
+	description: "点赞实例相关的api请求与回复"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type UserLikeInfo {
+	Id         int64  `json:"id"`
+	UserId     int64  `json:"user_id"`
+	TargetType string `json:"target_type"`
+	TargetId   int64  `json:"target_id"`
+	CreatedAt  int64  `json:"created_at"`
+}
+
+type (
+	CreateUserLikeReq {
+		UserId     int64  `json:"user_id"`
+		TargetType string `json:"target_type"`
+		TargetId   int64  `json:"target_id"`
+	}
+	CreateUserLikeResp {
+		BaseResp
+		UserLikeId int64 `json:"user_like_id"`
+	}
+)
+
+type (
+	DeleteUserLikeReq {
+		UserId     int64  `json:"user_id"`
+		TargetType string `json:"target_type"`
+		TargetId   int64  `json:"target_id"`
+	}
+	DeleteUserLikeResp {
+		BaseResp
+	}
+)
+
+type (
+	ListUserLikesReq {
+		UserId int64 `form:"user_id"`
+	}
+	ListUserLikesResp {
+		BaseResp
+		UserLikes []UserLikeInfo `json:"user_likes"`
+	}
+)
+
+type (
+	GetUserLikesCountReq {
+		UserId int64 `form:"user_id"`
+	}
+	GetUserLikesCountResp {
+		BaseResp
+		LikesCount int64 `json:"likes_count"`
+	}
+)
+
+type (
+	GetTargetLikesCountReq {
+		TargetType string `form:"target_type"`
+		TargetId   int64  `form:"target_id"`
+	}
+	GetTargetLikesCountResp {
+		BaseResp
+		LikesCount int64 `json:"likes_count"`
+	}
+)
+

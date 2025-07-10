@@ -1,0 +1,78 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "用户实例"
+	description: "用户实例相关的api请求与回复定义"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type UserInfo {
+	Id            int64  `json:"id"`
+	Email         string `json:"email"`
+	Username      string `json:"username"`
+	Avatar        string `json:"avatar"`
+	Signature     string `json:"signature"`
+	Birthday      string `json:"birthday"`
+	Phone         string `json:"phone"`
+	Status        int64  `json:"status"`
+	IsDeleted     int64  `json:"is_deleted"`
+	LastLoginTime int64  `json:"last_login_time"`
+	CreatedTime   int64  `json:"created_time"`
+	UpdatedTime   int64  `json:"updated_time"`
+}
+
+type (
+	RegisterReq {
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Phone    string `json:"phone"`
+	}
+	RegisterResp {
+		BaseResp
+		UserId int64 `json:"user_id"`
+	}
+)
+
+type (
+	LoginReq {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	LoginResp {
+		BaseResp
+		Token        string `json:"token"`
+		Expire       int64  `json:"expire"`
+		RefreshToken string `json:"refresh_token"`
+		UserId       int64  `json:"user_id"`
+	}
+)
+
+type (
+	GetUserReq {
+		UserId int64 `form:"user_id"`
+	}
+	GetUserResp {
+		BaseResp
+		UserInfo UserInfo `json:"user_info"`
+	}
+)
+
+type (
+	UpdateUserReq {
+		UserId   int64  `form:"user_id"`
+		Email    string `json:"email"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Phone    string `json:"phone"`
+	}
+	UpdateUserResp {
+		BaseResp
+		UserId int64 `json:"user_id"`
+	}
+)
+

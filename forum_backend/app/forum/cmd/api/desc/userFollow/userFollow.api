@@ -1,0 +1,80 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "用户关注实例"
+	description: "用户关注实例相关的api请求与回复"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type UserFollowInfo {
+	Id          int64 `json:"id"`
+	FollowerId  int64 `json:"follower_id"`
+	FollowingId int64 `json:"following_id"`
+	CreatedAt   int64 `json:"created_at"`
+}
+
+type (
+	CreateUserFollowReq {
+		FollowerId  int64 `json:"follower_id"`
+		FollowingId int64 `json:"following_id"`
+	}
+	CreateUserFollowResp {
+		BaseResp
+		UserFollowId int64 `json:"user_follow_id"`
+	}
+)
+
+type (
+	DeleteUserFollowReq {
+		FollowerId  int64 `json:"follower_id"`
+		FollowingId int64 `json:"following_id"`
+	}
+	DeleteUserFollowResp {
+		BaseResp
+	}
+)
+
+type (
+	ListUserFollowersReq {
+		FollowingId int64 `form:"following_id"`
+	}
+	ListUserFollowersResp {
+		BaseResp
+		UserFollowersIds []int64 `json:"user_followers_ids"`
+	}
+)
+
+type (
+	GetUserFollowersCountReq {
+		FollowingId int64 `form:"following_id"`
+	}
+	GetUserFollowersCountResp {
+		BaseResp
+		FollowersCount int64 `json:"followers_count"`
+	}
+)
+
+type (
+	ListUserFollowingsReq {
+		FollowerId int64 `form:"follower_id"`
+	}
+	ListUserFollowingsResp {
+		BaseResp
+		UserFollowingsIds []int64 `json:"user_followings_ids"`
+	}
+)
+
+type (
+	GetUserFollowingsCountReq {
+		FollowerId int64 `form:"follower_id"`
+	}
+	GetUserFollowingsCountResp {
+		BaseResp
+		FollowingsCount int64 `json:"followings_count"`
+	}
+)
+

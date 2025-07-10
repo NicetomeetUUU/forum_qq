@@ -1,0 +1,7 @@
+/doc
+/forum_backend/database/data
+/forum_backend/logs
+/forum_backend/.vscode
+/forum_backend/*.md
+/forum_frontend/node_modules
+/forum_backend/data
