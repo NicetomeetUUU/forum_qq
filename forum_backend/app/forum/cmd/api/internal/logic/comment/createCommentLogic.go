@@ -31,15 +31,7 @@ func (l *CreateCommentLogic) CreateComment(req *types.CreateCommentReq) (resp *t
 		l.Logger.Infof("check create comment req error: %v", err)
 		return l.generateResp(-1, 400, "check create comment req error"), err
 	}
-	comment := &comment.Comment{
-		Content: req.Content,
-		PostId:  req.PostId,
-		UserId:  req.UserId,
-		ParentId: sql.NullInt64{
-			Int64: req.ParentId,
-			Valid: req.ParentId != 0,
-		},
-	}
+	comment := l.generateComment(req)
 	sqlResult, err := l.svcCtx.CommentModel.Insert(l.ctx, comment)
 	if err != nil {
 		l.Logger.Errorf("insert comment error: %v", err)
@@ -59,15 +51,14 @@ func (l *CreateCommentLogic) checkCreateCommentReq(req *types.CreateCommentReq) 
 	if req.Content == "" {
 		return errors.New("content is required")
 	}
-	currentUserId := l.ctx.Value("currentUserId").(int64)
-	if req.UserId != currentUserId {
-		return errors.New("user id is not match")
-	}
 	post, err := l.svcCtx.PostModel.FindOne(l.ctx, req.PostId)
 	if err != nil {
+		return errors.New("select post error")
+	}
+	if post == nil {
 		return errors.New("post not found")
 	}
-	if post.Status != 1 {
+	if post.Status != "published" {
 		return errors.New("post is not published")
 	}
 	if req.ParentId != 0 {
@@ -83,6 +74,21 @@ func (l *CreateCommentLogic) checkCreateCommentReq(req *types.CreateCommentReq) 
 		}
 	}
 	return nil
+}
+
+func (l *CreateCommentLogic) generateComment(req *types.CreateCommentReq) *comment.Comment {
+	comment := &comment.Comment{
+		Content: req.Content,
+		PostId:  req.PostId,
+		UserId:  req.UserId,
+		ParentId: sql.NullInt64{
+			Int64: req.ParentId,
+			Valid: req.ParentId != 0,
+		},
+		LikeCount: 0,
+		Status:    "published",
+	}
+	return comment
 }
 
 func (l *CreateCommentLogic) generateResp(commentId int64, code int64, message string) *types.CreateCommentResp {

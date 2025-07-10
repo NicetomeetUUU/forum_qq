@@ -25,7 +25,7 @@ func NewDeletePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Delete
 }
 
 func (l *DeletePostLogic) DeletePost(req *types.DeletePostReq) (resp *types.DeletePostResp, err error) {
-	var status int64
+	var status string
 	var deleteType string = "none"
 	status, err = l.checkDeletePostReq(req)
 	if err != nil {
@@ -33,7 +33,7 @@ func (l *DeletePostLogic) DeletePost(req *types.DeletePostReq) (resp *types.Dele
 		l.Logger.Errorf(errstr)
 		return l.generateResp(deleteType, 400, errstr), err
 	}
-	if status != 2 {
+	if status != "hidden" {
 		deleteType = "soft"
 		err = l.svcCtx.PostModel.SoftDelete(l.ctx, req.Id)
 		if err != nil {
@@ -41,45 +41,37 @@ func (l *DeletePostLogic) DeletePost(req *types.DeletePostReq) (resp *types.Dele
 			l.Logger.Errorf(errstr)
 			return l.generateResp(deleteType, 400, errstr), err
 		}
+		err = l.svcCtx.CommentModel.UpdateCommentStatusByPostId(l.ctx, req.Id, "hidden")
+		if err != nil {
+			errstr := fmt.Sprintf("update comment status by post id %d failed: %v", req.Id, err)
+			l.Logger.Errorf(errstr)
+			return l.generateResp(deleteType, 400, errstr), err
+		}
 	} else {
-		deleteType = "hard"
-		commentCount, err := l.svcCtx.CommentModel.CountCommentsByPostId(l.ctx, req.Id)
-		if err != nil {
-			errstr := fmt.Sprintf("count comments by post id %d failed: %v", req.Id, err)
-			l.Logger.Errorf(errstr)
-			return l.generateResp(deleteType, 400, errstr), err
-		}
-		if commentCount > 0 {
-			errstr := "post has comments, can't hard delete, please delete comments first"
-			l.Logger.Infof(errstr)
-			return l.generateResp(deleteType, 400, errstr), errors.New(errstr)
-		}
-		err = l.svcCtx.PostModel.HardDelete(l.ctx, req.Id)
-		if err != nil {
-			errstr := fmt.Sprintf("hard delete post by id %d failed: %v", req.Id, err)
-			l.Logger.Errorf(errstr)
-			return l.generateResp(deleteType, 400, errstr), err
-		}
+		infostr := fmt.Sprintf("post is already hidden, no need to delete, post id: %d", req.Id)
+		l.Logger.Infof(infostr)
+		deleteType = "none"
+		return l.generateResp(deleteType, 200, infostr), nil
 	}
 	l.Logger.Infof("delete post success! post id: %d", req.Id)
 	resp = l.generateResp(deleteType, 200, "delete post success!")
 	return
 }
 
-func (l *DeletePostLogic) checkDeletePostReq(req *types.DeletePostReq) (int64, error) {
+func (l *DeletePostLogic) checkDeletePostReq(req *types.DeletePostReq) (string, error) {
 	if req.Id <= 0 {
-		return 0, errors.New("id is invalid, id must be greater than 0")
+		return "", errors.New("id is invalid, id must be greater than 0")
 	}
 	postInfo, err := l.svcCtx.PostModel.FindOne(l.ctx, req.Id)
 	if err != nil {
 		errstr := fmt.Sprintf("find post info by id %d failed: %v", req.Id, err)
-		return 0, errors.New(errstr)
+		return "", errors.New(errstr)
 	}
 	// userId := l.ctx.Value("userId").(int64)
 	userId := req.UserId
 	if postInfo.UserId != userId {
 		errstr := "user id not match"
-		return 0, errors.New(errstr)
+		return "", errors.New(errstr)
 	}
 	return postInfo.Status, nil
 }

@@ -66,7 +66,7 @@ CREATE TABLE `post` (
     `view_count` INT NOT NULL DEFAULT 0 COMMENT 'view count',
     `like_count` INT NOT NULL DEFAULT 0 COMMENT 'like count',
     `comment_count` INT NOT NULL DEFAULT 0 COMMENT 'comment count',
-    `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1: published, 0: draft, 2: deleted',
+    `status` ENUM('published', 'hidden') NOT NULL DEFAULT 'published' COMMENT 'status',
     `is_top` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: top, 0: normal',
     `is_hot` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: hot, 0: normal',
     `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'created time',
@@ -85,7 +85,7 @@ CREATE TABLE `comment` (
     `post_id` BIGINT NOT NULL COMMENT 'post id',
     `parent_id` BIGINT DEFAULT NULL COMMENT 'parent comment id',
     `like_count` INT NOT NULL DEFAULT 0 COMMENT 'like count',
-    `status` ENUM('published', 'deleted', 'hidden') NOT NULL DEFAULT 'published' COMMENT 'status',
+    `status` ENUM('published', 'hidden') NOT NULL DEFAULT 'published' COMMENT 'status',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'created time',
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated time',
     INDEX idx_post_id (post_id),
@@ -103,7 +103,8 @@ CREATE TABLE `user_like` (
     `target_id` BIGINT NOT NULL COMMENT 'target id',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uk_user_target (user_id, target_type, target_id),
-    INDEX idx_target (target_type, target_id)
+    INDEX idx_target (target_type, target_id),
+    INDEX idx_user_id (user_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user like table';
 
 -- 用户关注表

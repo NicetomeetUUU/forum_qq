@@ -24,13 +24,15 @@ var (
 	categoryRowsExpectAutoSet   = strings.Join(stringx.Remove(categoryFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	categoryRowsWithPlaceHolder = strings.Join(stringx.Remove(categoryFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheQqForumCategoryIdPrefix = "cache:qqForum:category:id:"
+	cacheQqForumCategoryIdPrefix   = "cache:qqForum:category:id:"
+	cacheQqForumCategoryNamePrefix = "cache:qqForum:category:name:"
 )
 
 type (
 	categoryModel interface {
 		Insert(ctx context.Context, data *Category) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*Category, error)
+		FindOneByName(ctx context.Context, name string) (*Category, error)
 		Update(ctx context.Context, data *Category) error
 		Delete(ctx context.Context, id int64) error
 	}
@@ -59,11 +61,17 @@ func newCategoryModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option
 }
 
 func (m *defaultCategoryModel) Delete(ctx context.Context, id int64) error {
+	data, err := m.FindOne(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	qqForumCategoryIdKey := fmt.Sprintf("%s%v", cacheQqForumCategoryIdPrefix, id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, data.Name)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, qqForumCategoryIdKey)
+	}, qqForumCategoryIdKey, qqForumCategoryNameKey)
 	return err
 }
 
@@ -84,21 +92,48 @@ func (m *defaultCategoryModel) FindOne(ctx context.Context, id int64) (*Category
 	}
 }
 
+func (m *defaultCategoryModel) FindOneByName(ctx context.Context, name string) (*Category, error) {
+	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, name)
+	var resp Category
+	err := m.QueryRowIndexCtx(ctx, &resp, qqForumCategoryNameKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where `name` = ? limit 1", categoryRows, m.table)
+		if err := conn.QueryRowCtx(ctx, &resp, query, name); err != nil {
+			return nil, err
+		}
+		return resp.Id, nil
+	}, m.queryPrimary)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultCategoryModel) Insert(ctx context.Context, data *Category) (sql.Result, error) {
 	qqForumCategoryIdKey := fmt.Sprintf("%s%v", cacheQqForumCategoryIdPrefix, data.Id)
+	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, data.Name)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?)", m.table, categoryRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.Name, data.Description, data.SortOrder, data.IsActive, data.CreatedTime, data.UpdatedTime)
-	}, qqForumCategoryIdKey)
+	}, qqForumCategoryIdKey, qqForumCategoryNameKey)
 	return ret, err
 }
 
-func (m *defaultCategoryModel) Update(ctx context.Context, data *Category) error {
+func (m *defaultCategoryModel) Update(ctx context.Context, newData *Category) error {
+	data, err := m.FindOne(ctx, newData.Id)
+	if err != nil {
+		return err
+	}
+
 	qqForumCategoryIdKey := fmt.Sprintf("%s%v", cacheQqForumCategoryIdPrefix, data.Id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, data.Name)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, categoryRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Name, data.Description, data.SortOrder, data.IsActive, data.CreatedTime, data.UpdatedTime, data.Id)
-	}, qqForumCategoryIdKey)
+		return conn.ExecCtx(ctx, query, newData.Name, newData.Description, newData.SortOrder, newData.IsActive, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+	}, qqForumCategoryIdKey, qqForumCategoryNameKey)
 	return err
 }
 

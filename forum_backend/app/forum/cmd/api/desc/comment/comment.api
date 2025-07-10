@@ -17,7 +17,7 @@ type CommentInfo {
 	PostId      int64  `json:"post_id"`
 	ParentId    int64  `json:"parent_id"`
 	LikeCount   int64  `json:"like_count"`
-	Status      int64  `json:"status"`
+	Status      string `json:"status"`
 	CreatedTime int64  `json:"created_time"`
 	UpdatedTime int64  `json:"updated_time"`
 }
@@ -47,13 +47,14 @@ type (
 
 type (
 	ListCommentReq {
-		PaginationReq
-		PostId int64 `form:"post_id"`
+		LastIndex int64 `form:"last_index"`
+		PageSize  int64 `form:"page_size"`
+		PostId    int64 `form:"post_id"`
 	}
 	ListCommentResp {
 		BaseResp
-		PaginationResp
-		Comments []CommentInfo `json:"comments"`
+		Comments  []CommentInfo `json:"comments"`
+		LastIndex int64         `json:"last_id"`
 	}
 )
 

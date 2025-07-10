@@ -12,7 +12,6 @@ import (
 var _ PostModel = (*customPostModel)(nil)
 
 var (
-	cacheQqForumPostListPrefix              = "cache:qqForum:post:list:"
 	cacheQqForumPostCountByCategoryIdPrefix = "cache:qqForum:post:countByCategoryId:"
 )
 
@@ -26,6 +25,9 @@ type (
 		UpdateViewCount(ctx context.Context, postId int64) error
 		SoftDelete(ctx context.Context, id int64) error
 		HardDelete(ctx context.Context, id int64) error
+		IncreaseLikeCount(ctx context.Context, id int64) error
+		DecreaseLikeCount(ctx context.Context, id int64) error
+		Restore(ctx context.Context, id int64) error
 	}
 
 	customPostModel struct {
@@ -42,7 +44,7 @@ func NewPostModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) Po
 
 func (m *customPostModel) FindPostList(ctx context.Context, pageSize int64, lastIndex int64, orderBy string, orderType string) ([]*Post, error) {
 	var resp []*Post
-	query := fmt.Sprintf("SELECT * FROM %s WHERE status = 1 ORDER BY %s %s LIMIT ? OFFSET ?", m.table, orderBy, orderType)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE status = 'published' ORDER BY %s %s LIMIT ? OFFSET ?", m.table, orderBy, orderType)
 	err := m.CachedConn.QueryRowsNoCacheCtx(ctx, &resp, query, pageSize, lastIndex)
 	if err != nil {
 		return nil, err
@@ -75,13 +77,41 @@ func (m *customPostModel) UpdateViewCount(ctx context.Context, postId int64) err
 }
 
 func (m *customPostModel) SoftDelete(ctx context.Context, id int64) error {
+	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
 	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("UPDATE %s SET status = 2 WHERE id = ?", m.table)
+		query := fmt.Sprintf("UPDATE %s SET status = 'hidden' WHERE id = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, "id")
+	}, cacheKey)
 	return err
 }
 
 func (m *customPostModel) HardDelete(ctx context.Context, id int64) error {
 	return m.Delete(ctx, id)
+}
+
+func (m *customPostModel) IncreaseLikeCount(ctx context.Context, id int64) error {
+	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
+	query := fmt.Sprintf("UPDATE %s SET like_count = like_count + 1 WHERE id = ?", m.table)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, id)
+	}, cacheKey)
+	return err
+}
+
+func (m *customPostModel) DecreaseLikeCount(ctx context.Context, id int64) error {
+	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
+	query := fmt.Sprintf("UPDATE %s SET like_count = like_count - 1 WHERE id = ?", m.table)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, id)
+	}, cacheKey)
+	return err
+}
+
+func (m *customPostModel) Restore(ctx context.Context, id int64) error {
+	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
+	query := fmt.Sprintf("UPDATE %s SET status = 'published' WHERE id = ?", m.table)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, id)
+	}, cacheKey)
+	return err
 }

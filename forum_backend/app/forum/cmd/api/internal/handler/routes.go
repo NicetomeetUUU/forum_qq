@@ -11,6 +11,7 @@ import (
 	comment "forum_backend/app/forum/cmd/api/internal/handler/comment"
 	post "forum_backend/app/forum/cmd/api/internal/handler/post"
 	user "forum_backend/app/forum/cmd/api/internal/handler/user"
+	userLike "forum_backend/app/forum/cmd/api/internal/handler/userLike"
 	"forum_backend/app/forum/cmd/api/internal/svc"
 
 	"github.com/zeromicro/go-zero/rest"
@@ -133,6 +134,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: post.ListPostsHandler(serverCtx),
 			},
 			{
+				Method:  http.MethodPost,
+				Path:    "/p/restore",
+				Handler: post.RestorePostHandler(serverCtx),
+			},
+			{
 				Method:  http.MethodPut,
 				Path:    "/p/update",
 				Handler: post.UpdatePostHandler(serverCtx),
@@ -157,6 +163,37 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Method:  http.MethodPost,
 				Path:    "/u/register",
 				Handler: user.RegisterHandler(serverCtx),
+			},
+		},
+		rest.WithPrefix("/api/v1"),
+	)
+
+	server.AddRoutes(
+		[]rest.Route{
+			{
+				Method:  http.MethodGet,
+				Path:    "/ul/count",
+				Handler: userLike.GetUserLikesCountHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/ul/create",
+				Handler: userLike.CreateUserLikeHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodDelete,
+				Path:    "/ul/delete",
+				Handler: userLike.DeleteUserLikeHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/ul/list",
+				Handler: userLike.ListUserLikesHandler(serverCtx),
+			},
+			{
+				Method:  http.MethodGet,
+				Path:    "/ul/target/count",
+				Handler: userLike.GetTargetLikesCountHandler(serverCtx),
 			},
 		},
 		rest.WithPrefix("/api/v1"),

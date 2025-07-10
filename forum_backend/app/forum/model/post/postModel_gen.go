@@ -24,13 +24,15 @@ var (
 	postRowsExpectAutoSet   = strings.Join(stringx.Remove(postFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), ",")
 	postRowsWithPlaceHolder = strings.Join(stringx.Remove(postFieldNames, "`id`", "`create_at`", "`create_time`", "`created_at`", "`update_at`", "`update_time`", "`updated_at`"), "=?,") + "=?"
 
-	cacheQqForumPostIdPrefix = "cache:qqForum:post:id:"
+	cacheQqForumPostIdPrefix    = "cache:qqForum:post:id:"
+	cacheQqForumPostTitlePrefix = "cache:qqForum:post:title:"
 )
 
 type (
 	postModel interface {
 		Insert(ctx context.Context, data *Post) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*Post, error)
+		FindOneByTitle(ctx context.Context, title string) (*Post, error)
 		Update(ctx context.Context, data *Post) error
 		Delete(ctx context.Context, id int64) error
 	}
@@ -49,7 +51,7 @@ type (
 		ViewCount    int64         `db:"view_count"`    // view count
 		LikeCount    int64         `db:"like_count"`    // like count
 		CommentCount int64         `db:"comment_count"` // comment count
-		Status       int64         `db:"status"`        // 1: published, 0: draft, 2: deleted
+		Status       string        `db:"status"`        // status
 		IsTop        int64         `db:"is_top"`        // 1: top, 0: normal
 		IsHot        int64         `db:"is_hot"`        // 1: hot, 0: normal
 		CreatedTime  time.Time     `db:"created_time"`  // created time
@@ -65,11 +67,17 @@ func newPostModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) *d
 }
 
 func (m *defaultPostModel) Delete(ctx context.Context, id int64) error {
+	data, err := m.FindOne(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	qqForumPostIdKey := fmt.Sprintf("%s%v", cacheQqForumPostIdPrefix, id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, data.Title)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, qqForumPostIdKey)
+	}, qqForumPostIdKey, qqForumPostTitleKey)
 	return err
 }
 
@@ -90,21 +98,48 @@ func (m *defaultPostModel) FindOne(ctx context.Context, id int64) (*Post, error)
 	}
 }
 
+func (m *defaultPostModel) FindOneByTitle(ctx context.Context, title string) (*Post, error) {
+	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, title)
+	var resp Post
+	err := m.QueryRowIndexCtx(ctx, &resp, qqForumPostTitleKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
+		query := fmt.Sprintf("select %s from %s where `title` = ? limit 1", postRows, m.table)
+		if err := conn.QueryRowCtx(ctx, &resp, query, title); err != nil {
+			return nil, err
+		}
+		return resp.Id, nil
+	}, m.queryPrimary)
+	switch err {
+	case nil:
+		return &resp, nil
+	case sqlc.ErrNotFound:
+		return nil, ErrNotFound
+	default:
+		return nil, err
+	}
+}
+
 func (m *defaultPostModel) Insert(ctx context.Context, data *Post) (sql.Result, error) {
 	qqForumPostIdKey := fmt.Sprintf("%s%v", cacheQqForumPostIdPrefix, data.Id)
+	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, data.Title)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, postRowsExpectAutoSet)
 		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.UserId, data.CategoryId, data.ViewCount, data.LikeCount, data.CommentCount, data.Status, data.IsTop, data.IsHot, data.CreatedTime, data.UpdatedTime)
-	}, qqForumPostIdKey)
+	}, qqForumPostIdKey, qqForumPostTitleKey)
 	return ret, err
 }
 
-func (m *defaultPostModel) Update(ctx context.Context, data *Post) error {
+func (m *defaultPostModel) Update(ctx context.Context, newData *Post) error {
+	data, err := m.FindOne(ctx, newData.Id)
+	if err != nil {
+		return err
+	}
+
 	qqForumPostIdKey := fmt.Sprintf("%s%v", cacheQqForumPostIdPrefix, data.Id)
-	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, data.Title)
+	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, postRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.UserId, data.CategoryId, data.ViewCount, data.LikeCount, data.CommentCount, data.Status, data.IsTop, data.IsHot, data.CreatedTime, data.UpdatedTime, data.Id)
-	}, qqForumPostIdKey)
+		return conn.ExecCtx(ctx, query, newData.Title, newData.Content, newData.UserId, newData.CategoryId, newData.ViewCount, newData.LikeCount, newData.CommentCount, newData.Status, newData.IsTop, newData.IsHot, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+	}, qqForumPostIdKey, qqForumPostTitleKey)
 	return err
 }
 

@@ -101,7 +101,7 @@ func (l *CreatePostLogic) generatePostInfo(postInfo *types.CreatePostReq, userId
 		ViewCount:    0,
 		LikeCount:    0,
 		CommentCount: 0,
-		Status:       1,
+		Status:       "published",
 		IsTop:        0,
 		IsHot:        0,
 		CreatedTime:  time.Now(),

@@ -14,6 +14,7 @@ import (
 	"post/post.api"
 	"comment/comment.api"
 	"category/category.api"
+	"userLike/userLike.api"
 )
 
 @server (
@@ -74,6 +75,9 @@ service forumService {
 
 	@handler DeletePost
 	delete /p/delete (DeletePostReq) returns (DeletePostResp)
+
+	@handler RestorePost
+	post /p/restore (RestorePostReq) returns (RestorePostResp)
 }
 
 @server (
@@ -118,5 +122,27 @@ service forumService {
 
 	@handler ListCategories
 	get /ca/list (ListCategoryReq) returns (ListCategoryResp)
+}
+
+@server (
+	prefix: api/v1
+	group:  userLike
+)
+service forumService {
+	// ---------------点赞服务---------------
+	@handler CreateUserLike
+	post /ul/create (CreateUserLikeReq) returns (CreateUserLikeResp)
+
+	@handler DeleteUserLike
+	delete /ul/delete (DeleteUserLikeReq) returns (DeleteUserLikeResp)
+
+	@handler ListUserLikes
+	get /ul/list (ListUserLikesReq) returns (ListUserLikesResp)
+
+	@handler GetUserLikesCount
+	get /ul/count (GetUserLikesCountReq) returns (GetUserLikesCountResp)
+
+	@handler GetTargetLikesCount
+	get /ul/target/count (GetTargetLikesCountReq) returns (GetTargetLikesCountResp)
 }
 

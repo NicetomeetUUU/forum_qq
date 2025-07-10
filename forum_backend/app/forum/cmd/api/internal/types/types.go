@@ -37,7 +37,7 @@ type CommentInfo struct {
 	PostId      int64  `json:"post_id"`
 	ParentId    int64  `json:"parent_id"`
 	LikeCount   int64  `json:"like_count"`
-	Status      int64  `json:"status"`
+	Status      string `json:"status"`
 	CreatedTime int64  `json:"created_time"`
 	UpdatedTime int64  `json:"updated_time"`
 }
@@ -89,6 +89,17 @@ type CreatePostResp struct {
 	PostId int64 `json:"post_id"`
 }
 
+type CreateUserLikeReq struct {
+	UserId     int64  `json:"user_id"`
+	TargetType string `json:"target_type"`
+	TargetId   int64  `json:"target_id"`
+}
+
+type CreateUserLikeResp struct {
+	BaseResp
+	UserLikeId int64 `json:"user_like_id"`
+}
+
 type DeleteAdminReq struct {
 	Id int64 `json:"id"`
 }
@@ -124,8 +135,18 @@ type DeletePostResp struct {
 	DeleteType string `json:"delete_type"`
 }
 
+type DeleteUserLikeReq struct {
+	UserId     int64  `json:"user_id"`
+	TargetType string `json:"target_type"`
+	TargetId   int64  `json:"target_id"`
+}
+
+type DeleteUserLikeResp struct {
+	BaseResp
+}
+
 type GetAdminReq struct {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type GetAdminResp struct {
@@ -143,7 +164,7 @@ type GetCategoryResp struct {
 }
 
 type GetCommentReq struct {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type GetCommentResp struct {
@@ -158,6 +179,25 @@ type GetPostReq struct {
 type GetPostResp struct {
 	BaseResp
 	Post PostInfo `json:"post"`
+}
+
+type GetTargetLikesCountReq struct {
+	TargetType string `form:"target_type"`
+	TargetId   int64  `form:"target_id"`
+}
+
+type GetTargetLikesCountResp struct {
+	BaseResp
+	LikesCount int64 `json:"likes_count"`
+}
+
+type GetUserLikesCountReq struct {
+	UserId int64 `form:"user_id"`
+}
+
+type GetUserLikesCountResp struct {
+	BaseResp
+	LikesCount int64 `json:"likes_count"`
 }
 
 type GetUserReq struct {
@@ -184,20 +224,19 @@ type ListCategoryResp struct {
 }
 
 type ListCommentReq struct {
-	PaginationReq
-	PostId int64 `json:"post_id"`
+	LastIndex int64 `form:"last_index"`
+	PageSize  int64 `form:"page_size"`
+	PostId    int64 `form:"post_id"`
 }
 
 type ListCommentResp struct {
 	BaseResp
-	PaginationResp
-	Comments []CommentInfo `json:"comments"`
+	Comments  []CommentInfo `json:"comments"`
+	LastIndex int64         `json:"last_id"`
 }
 
 type ListPostReq struct {
-	CategoryId int64  `form:"category_id"`
-	UserId     int64  `form:"user_id,optional"`
-	Status     int64  `form:"status,optional"`
+	CategoryId int64  `form:"category_id,optional"`
 	LastIndex  int64  `form:"last_index"`
 	PageSize   int64  `form:"page_size"`
 	OrderBy    string `form:"order_by"`
@@ -209,6 +248,15 @@ type ListPostResp struct {
 	Posts   []PostInfo `json:"posts"`
 	HasMore bool       `json:"has_more"`
 	LastId  int64      `json:"last_id"`
+}
+
+type ListUserLikesReq struct {
+	UserId int64 `form:"user_id"`
+}
+
+type ListUserLikesResp struct {
+	BaseResp
+	UserLikes []UserLikeInfo `json:"user_likes"`
 }
 
 type LoginAdminReq struct {
@@ -257,7 +305,7 @@ type PostInfo struct {
 	Content     string `json:"content"`
 	UserId      int64  `json:"user_id"`
 	CategoryId  int64  `json:"category_id"`
-	Status      int64  `json:"status"`
+	Status      string `json:"status"`
 	IsTop       int64  `json:"is_top"`
 	IsHot       int64  `json:"is_hot"`
 	CreatedTime int64  `json:"created_time"`
@@ -274,6 +322,15 @@ type RegisterReq struct {
 type RegisterResp struct {
 	BaseResp
 	UserId int64 `json:"user_id"`
+}
+
+type RestorePostReq struct {
+	Id int64 `json:"id"`
+}
+
+type RestorePostResp struct {
+	BaseResp
+	PostId int64 `json:"post_id"`
 }
 
 type UpdateAdminReq struct {
@@ -351,4 +408,12 @@ type UserInfo struct {
 	LastLoginTime int64  `json:"last_login_time"`
 	CreatedTime   int64  `json:"created_time"`
 	UpdatedTime   int64  `json:"updated_time"`
+}
+
+type UserLikeInfo struct {
+	Id         int64  `json:"id"`
+	UserId     int64  `json:"user_id"`
+	TargetType string `json:"target_type"`
+	TargetId   int64  `json:"target_id"`
+	CreatedAt  int64  `json:"created_at"`
 }

@@ -46,7 +46,7 @@ func (l *UpdatePostLogic) UpdatePost(req *types.UpdatePostReq) (resp *types.Upda
 		l.Logger.Infof(errstr)
 		return l.generateResp(req.Id, 400, errstr), errors.New(errstr)
 	}
-	if postInfo.Status != 1 {
+	if postInfo.Status != "published" {
 		errstr := "post is not published, can't update"
 		l.Logger.Infof(errstr)
 		return l.generateResp(req.Id, 400, errstr), errors.New(errstr)
