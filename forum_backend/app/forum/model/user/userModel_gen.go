@@ -26,7 +26,6 @@ var (
 
 	cacheQqForumUserIdPrefix       = "cache:qqForum:user:id:"
 	cacheQqForumUserEmailPrefix    = "cache:qqForum:user:email:"
-	cacheQqForumUserPhonePrefix    = "cache:qqForum:user:phone:"
 	cacheQqForumUserUsernamePrefix = "cache:qqForum:user:username:"
 )
 
@@ -35,7 +34,6 @@ type (
 		Insert(ctx context.Context, data *User) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*User, error)
 		FindOneByEmail(ctx context.Context, email string) (*User, error)
-		FindOneByPhone(ctx context.Context, phone string) (*User, error)
 		FindOneByUsername(ctx context.Context, username string) (*User, error)
 		Update(ctx context.Context, data *User) error
 		Delete(ctx context.Context, id int64) error
@@ -53,10 +51,7 @@ type (
 		Username      string       `db:"username"`        // username
 		Avatar        string       `db:"avatar"`          // avatar url
 		Signature     string       `db:"signature"`       // signature
-		Birthday      sql.NullTime `db:"birthday"`        // birthday
-		Phone         string       `db:"phone"`           // phone
-		Status        int64        `db:"status"`          // 1: active, 0: inactive
-		IsDeleted     int64        `db:"is_deleted"`      // 1: deleted, 0: not deleted
+		Status        string       `db:"status"`          // status
 		LastLoginTime sql.NullTime `db:"last_login_time"` // last login time
 		CreatedTime   time.Time    `db:"created_time"`
 		UpdatedTime   time.Time    `db:"updated_time"`
@@ -78,12 +73,11 @@ func (m *defaultUserModel) Delete(ctx context.Context, id int64) error {
 
 	qqForumUserEmailKey := fmt.Sprintf("%s%v", cacheQqForumUserEmailPrefix, data.Email)
 	qqForumUserIdKey := fmt.Sprintf("%s%v", cacheQqForumUserIdPrefix, id)
-	qqForumUserPhoneKey := fmt.Sprintf("%s%v", cacheQqForumUserPhonePrefix, data.Phone)
 	qqForumUserUsernameKey := fmt.Sprintf("%s%v", cacheQqForumUserUsernamePrefix, data.Username)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserPhoneKey, qqForumUserUsernameKey)
+	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserUsernameKey)
 	return err
 }
 
@@ -124,26 +118,6 @@ func (m *defaultUserModel) FindOneByEmail(ctx context.Context, email string) (*U
 	}
 }
 
-func (m *defaultUserModel) FindOneByPhone(ctx context.Context, phone string) (*User, error) {
-	qqForumUserPhoneKey := fmt.Sprintf("%s%v", cacheQqForumUserPhonePrefix, phone)
-	var resp User
-	err := m.QueryRowIndexCtx(ctx, &resp, qqForumUserPhoneKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
-		query := fmt.Sprintf("select %s from %s where `phone` = ? limit 1", userRows, m.table)
-		if err := conn.QueryRowCtx(ctx, &resp, query, phone); err != nil {
-			return nil, err
-		}
-		return resp.Id, nil
-	}, m.queryPrimary)
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
-}
-
 func (m *defaultUserModel) FindOneByUsername(ctx context.Context, username string) (*User, error) {
 	qqForumUserUsernameKey := fmt.Sprintf("%s%v", cacheQqForumUserUsernamePrefix, username)
 	var resp User
@@ -167,12 +141,11 @@ func (m *defaultUserModel) FindOneByUsername(ctx context.Context, username strin
 func (m *defaultUserModel) Insert(ctx context.Context, data *User) (sql.Result, error) {
 	qqForumUserEmailKey := fmt.Sprintf("%s%v", cacheQqForumUserEmailPrefix, data.Email)
 	qqForumUserIdKey := fmt.Sprintf("%s%v", cacheQqForumUserIdPrefix, data.Id)
-	qqForumUserPhoneKey := fmt.Sprintf("%s%v", cacheQqForumUserPhonePrefix, data.Phone)
 	qqForumUserUsernameKey := fmt.Sprintf("%s%v", cacheQqForumUserUsernamePrefix, data.Username)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Email, data.Password, data.Username, data.Avatar, data.Signature, data.Birthday, data.Phone, data.Status, data.IsDeleted, data.LastLoginTime, data.CreatedTime, data.UpdatedTime)
-	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserPhoneKey, qqForumUserUsernameKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, userRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Email, data.Password, data.Username, data.Avatar, data.Signature, data.Status, data.LastLoginTime, data.CreatedTime, data.UpdatedTime)
+	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserUsernameKey)
 	return ret, err
 }
 
@@ -184,12 +157,11 @@ func (m *defaultUserModel) Update(ctx context.Context, newData *User) error {
 
 	qqForumUserEmailKey := fmt.Sprintf("%s%v", cacheQqForumUserEmailPrefix, data.Email)
 	qqForumUserIdKey := fmt.Sprintf("%s%v", cacheQqForumUserIdPrefix, data.Id)
-	qqForumUserPhoneKey := fmt.Sprintf("%s%v", cacheQqForumUserPhonePrefix, data.Phone)
 	qqForumUserUsernameKey := fmt.Sprintf("%s%v", cacheQqForumUserUsernamePrefix, data.Username)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, userRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Email, newData.Password, newData.Username, newData.Avatar, newData.Signature, newData.Birthday, newData.Phone, newData.Status, newData.IsDeleted, newData.LastLoginTime, newData.CreatedTime, newData.UpdatedTime, newData.Id)
-	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserPhoneKey, qqForumUserUsernameKey)
+		return conn.ExecCtx(ctx, query, newData.Email, newData.Password, newData.Username, newData.Avatar, newData.Signature, newData.Status, newData.LastLoginTime, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+	}, qqForumUserEmailKey, qqForumUserIdKey, qqForumUserUsernameKey)
 	return err
 }
 

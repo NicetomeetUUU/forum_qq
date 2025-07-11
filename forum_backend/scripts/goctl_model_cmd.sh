@@ -47,5 +47,12 @@ goctl model mysql datasource \
     -t user_follow \
     --style goZero
 
+goctl model mysql datasource \
+    --url 'root:root542@tcp(127.0.0.1:3307)/qq_forum' \
+    -d ../app/forum/model/post_category \
+    -c \
+    -t post_category \
+    --style goZero
+
 
 

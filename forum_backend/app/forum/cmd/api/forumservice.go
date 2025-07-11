@@ -7,6 +7,7 @@ import (
 	"forum_backend/app/forum/cmd/api/internal/config"
 	"forum_backend/app/forum/cmd/api/internal/handler"
 	"forum_backend/app/forum/cmd/api/internal/svc"
+	"forum_backend/app/forum/cmd/api/internal/cron"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/rest"
@@ -25,6 +26,7 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+	cron.StartCronTasks(ctx)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

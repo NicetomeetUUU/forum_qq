@@ -24,12 +24,13 @@ func NewDeleteCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Del
 }
 
 func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentReq) (resp *types.DeleteCommentResp, err error) {
-	if err = l.checkDeleteCommentReq(req); err != nil {
+	postId, err := l.checkDeleteCommentReq(req)
+	if err != nil {
 		errstr := fmt.Sprintf("check delete comment req failed: %v", err)
 		l.Logger.Errorf(errstr)
 		return l.generateResp(400, errstr), err
 	}
-	err = l.svcCtx.CommentModel.DeleteCommentByParentId(l.ctx, req.Id)
+	totalDeletedCommentCount, err := l.svcCtx.CommentModel.DeleteCommentByParentId(l.ctx, req.Id)
 	if err != nil {
 		errstr := fmt.Sprintf("delete children under comment %d failed: %v", req.Id, err)
 		l.Logger.Errorf(errstr)
@@ -41,27 +42,34 @@ func (l *DeleteCommentLogic) DeleteComment(req *types.DeleteCommentReq) (resp *t
 		l.Logger.Errorf(errstr)
 		return l.generateResp(400, errstr), err
 	}
+	totalDeletedCommentCount += 1
+	err = l.svcCtx.PostModel.UpdateCommentCount(l.ctx, postId, -totalDeletedCommentCount)
+	if err != nil {
+		errstr := fmt.Sprintf("update post comment count error: %v", err)
+		l.Logger.Errorf(errstr)
+		return l.generateResp(400, errstr), err
+	}
 	l.Logger.Infof("delete comment success")
 	resp = l.generateResp(0, "success")
 	return
 }
 
-func (l *DeleteCommentLogic) checkDeleteCommentReq(req *types.DeleteCommentReq) error {
+func (l *DeleteCommentLogic) checkDeleteCommentReq(req *types.DeleteCommentReq) (int64, error) {
 	if req.Id <= 0 {
-		return fmt.Errorf("id is required, id: %d must be greater than 0", req.Id)
+		return 0, fmt.Errorf("id is required, id: %d must be greater than 0", req.Id)
 	}
 	comment, err := l.svcCtx.CommentModel.FindOne(l.ctx, req.Id)
 	if err != nil {
-		return fmt.Errorf("find comment failed: %v", err)
+		return 0, fmt.Errorf("find comment failed: %v", err)
 	}
 	post, err := l.svcCtx.PostModel.FindOne(l.ctx, comment.PostId)
 	if err != nil {
-		return fmt.Errorf("find post failed: %v", err)
+		return 0, fmt.Errorf("find post failed: %v", err)
 	}
 	if post.Status != "published" {
-		return fmt.Errorf("post is not published, can't delete comment")
+		return 0, fmt.Errorf("post is not published, can't delete comment")
 	}
-	return nil
+	return post.Id, nil
 }
 
 func (l *DeleteCommentLogic) generateResp(code int64, message string) *types.DeleteCommentResp {

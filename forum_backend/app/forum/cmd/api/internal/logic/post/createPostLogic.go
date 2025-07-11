@@ -9,8 +9,6 @@ import (
 	"forum_backend/app/forum/model/post"
 	"time"
 
-	"database/sql"
-
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
@@ -61,21 +59,6 @@ func (l *CreatePostLogic) checkPostInfo(postInfo *types.CreatePostReq) error {
 	if postInfo.Content == "" {
 		return errors.New("content is required")
 	}
-	if postInfo.CategoryId > 0 {
-		targetCategory, err := l.svcCtx.CategoryModel.FindOne(l.ctx, postInfo.CategoryId)
-		if err != nil {
-			errstr := fmt.Sprintf("get category: %d error: %v", postInfo.CategoryId, err)
-			return errors.New(errstr)
-		}
-		if targetCategory == nil {
-			errstr := fmt.Sprintf("category: %d not found", postInfo.CategoryId)
-			return errors.New(errstr)
-		}
-		if targetCategory.IsActive == 0 {
-			errstr := fmt.Sprintf("category: %d is inactive", postInfo.CategoryId)
-			return errors.New(errstr)
-		}
-	}
 	return nil
 }
 
@@ -91,19 +74,13 @@ func (l *CreatePostLogic) generateResp(postId int64, code int64, message string)
 
 func (l *CreatePostLogic) generatePostInfo(postInfo *types.CreatePostReq, userId int64) *post.Post {
 	return &post.Post{
-		Title:   postInfo.Title,
-		Content: postInfo.Content,
-		UserId:  userId,
-		CategoryId: sql.NullInt64{
-			Int64: postInfo.CategoryId,
-			Valid: postInfo.CategoryId > 0,
-		},
+		Title:        postInfo.Title,
+		Content:      postInfo.Content,
+		UserId:       userId,
 		ViewCount:    0,
 		LikeCount:    0,
 		CommentCount: 0,
 		Status:       "published",
-		IsTop:        0,
-		IsHot:        0,
 		CreatedTime:  time.Now(),
 		UpdatedTime:  time.Now(),
 	}

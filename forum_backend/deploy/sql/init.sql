@@ -14,16 +14,12 @@ CREATE TABLE `user` (
     `username` VARCHAR(255) NOT NULL UNIQUE DEFAULT '' COMMENT 'username',
     `avatar` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'avatar url',
     `signature` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'signature',
-    `birthday` DATE DEFAULT NULL COMMENT 'birthday',
-    `phone` VARCHAR(20) NOT NULL UNIQUE DEFAULT '' COMMENT 'phone',
-    `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1: active, 0: inactive',
-    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: deleted, 0: not deleted',
+    `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'status',
     `last_login_time` DATETIME DEFAULT NULL COMMENT 'last login time',
     `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
-    INDEX idx_username (username),
-    INDEX idx_phone (phone)
+    INDEX idx_username (username)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='user table';
 
 -- 管理员表
@@ -33,14 +29,12 @@ CREATE TABLE `admin` (
     `email` VARCHAR(255) NOT NULL UNIQUE DEFAULT '' COMMENT 'email',
     `password` VARCHAR(255) NOT NULL DEFAULT '' COMMENT 'password',
     `username` VARCHAR(255) NOT NULL UNIQUE DEFAULT '' COMMENT 'username',
-    `phone` VARCHAR(20) NOT NULL UNIQUE DEFAULT '' COMMENT 'phone',
-    `status` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1: active, 0: inactive',
-    `is_deleted` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: deleted, 0: not deleted',
+    `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'status',
+    `last_login_time` DATETIME DEFAULT NULL COMMENT 'last login time',
     `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_email (email),
-    INDEX idx_username (username),
-    INDEX idx_phone (phone)
+    INDEX idx_username (username)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='admin table';
 
 -- 分类表
@@ -49,10 +43,10 @@ CREATE TABLE `category` (
     `id` BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'auto_category_id',
     `name` VARCHAR(100) NOT NULL UNIQUE COMMENT 'category name',
     `description` TEXT COMMENT 'category description',
-    `sort_order` INT NOT NULL DEFAULT 0 COMMENT 'sort order',
-    `is_active` TINYINT(1) NOT NULL DEFAULT 1 COMMENT '1: active, 0: inactive',
+    `status` ENUM('active', 'inactive') NOT NULL DEFAULT 'active' COMMENT 'status',
     `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_name (name)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='category table';
 
 -- 帖子表
@@ -62,17 +56,13 @@ CREATE TABLE `post` (
     `title` VARCHAR(255) NOT NULL UNIQUE COMMENT 'title',
     `content` TEXT NOT NULL COMMENT 'content',
     `user_id` BIGINT NOT NULL COMMENT 'user id',
-    `category_id` BIGINT DEFAULT NULL COMMENT 'category id',
     `view_count` INT NOT NULL DEFAULT 0 COMMENT 'view count',
     `like_count` INT NOT NULL DEFAULT 0 COMMENT 'like count',
     `comment_count` INT NOT NULL DEFAULT 0 COMMENT 'comment count',
     `status` ENUM('published', 'hidden') NOT NULL DEFAULT 'published' COMMENT 'status',
-    `is_top` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: top, 0: normal',
-    `is_hot` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1: hot, 0: normal',
     `created_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'created time',
     `updated_time` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated time',
     INDEX idx_user_id (user_id),
-    INDEX idx_category_id (category_id),
     INDEX idx_created_time (created_time)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='post table';
 
@@ -102,8 +92,7 @@ CREATE TABLE `comment` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'updated time',
     INDEX idx_post_id (post_id),
     INDEX idx_parent_id (parent_id),
-    INDEX idx_user_id (user_id),
-    INDEX idx_status (status)
+    INDEX idx_user_id (user_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='comment table';
 
 -- 用户点赞表

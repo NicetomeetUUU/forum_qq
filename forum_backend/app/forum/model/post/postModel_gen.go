@@ -43,19 +43,16 @@ type (
 	}
 
 	Post struct {
-		Id           int64         `db:"id"`            // auto_post_id
-		Title        string        `db:"title"`         // title
-		Content      string        `db:"content"`       // content
-		UserId       int64         `db:"user_id"`       // user id
-		CategoryId   sql.NullInt64 `db:"category_id"`   // category id
-		ViewCount    int64         `db:"view_count"`    // view count
-		LikeCount    int64         `db:"like_count"`    // like count
-		CommentCount int64         `db:"comment_count"` // comment count
-		Status       string        `db:"status"`        // status
-		IsTop        int64         `db:"is_top"`        // 1: top, 0: normal
-		IsHot        int64         `db:"is_hot"`        // 1: hot, 0: normal
-		CreatedTime  time.Time     `db:"created_time"`  // created time
-		UpdatedTime  time.Time     `db:"updated_time"`  // updated time
+		Id           int64     `db:"id"`            // auto_post_id
+		Title        string    `db:"title"`         // title
+		Content      string    `db:"content"`       // content
+		UserId       int64     `db:"user_id"`       // user id
+		ViewCount    int64     `db:"view_count"`    // view count
+		LikeCount    int64     `db:"like_count"`    // like count
+		CommentCount int64     `db:"comment_count"` // comment count
+		Status       string    `db:"status"`        // status
+		CreatedTime  time.Time `db:"created_time"`  // created time
+		UpdatedTime  time.Time `db:"updated_time"`  // updated time
 	}
 )
 
@@ -122,8 +119,8 @@ func (m *defaultPostModel) Insert(ctx context.Context, data *Post) (sql.Result, 
 	qqForumPostIdKey := fmt.Sprintf("%s%v", cacheQqForumPostIdPrefix, data.Id)
 	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, data.Title)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, postRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.UserId, data.CategoryId, data.ViewCount, data.LikeCount, data.CommentCount, data.Status, data.IsTop, data.IsHot, data.CreatedTime, data.UpdatedTime)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?, ?)", m.table, postRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Title, data.Content, data.UserId, data.ViewCount, data.LikeCount, data.CommentCount, data.Status, data.CreatedTime, data.UpdatedTime)
 	}, qqForumPostIdKey, qqForumPostTitleKey)
 	return ret, err
 }
@@ -138,7 +135,7 @@ func (m *defaultPostModel) Update(ctx context.Context, newData *Post) error {
 	qqForumPostTitleKey := fmt.Sprintf("%s%v", cacheQqForumPostTitlePrefix, data.Title)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, postRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Title, newData.Content, newData.UserId, newData.CategoryId, newData.ViewCount, newData.LikeCount, newData.CommentCount, newData.Status, newData.IsTop, newData.IsHot, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.Title, newData.Content, newData.UserId, newData.ViewCount, newData.LikeCount, newData.CommentCount, newData.Status, newData.CreatedTime, newData.UpdatedTime, newData.Id)
 	}, qqForumPostIdKey, qqForumPostTitleKey)
 	return err
 }

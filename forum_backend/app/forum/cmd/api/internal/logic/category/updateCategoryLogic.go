@@ -41,7 +41,7 @@ func (l *UpdateCategoryLogic) UpdateCategory(req *types.UpdateCategoryReq) (resp
 		l.Logger.Errorf(errstr)
 		return l.generateResp(nil, 400, errstr), err
 	}
-	if category.IsActive == 0 {
+	if category.Status == "inactive" {
 		errstr := "category is inactive, can't update"
 		l.Logger.Infof(errstr)
 		return l.generateResp(nil, 400, errstr), errors.New(errstr)
@@ -67,8 +67,7 @@ func (l *UpdateCategoryLogic) generateResp(category *category.Category, code int
 			Id:          category.Id,
 			Name:        category.Name,
 			Description: category.Description.String,
-			SortOrder:   category.SortOrder,
-			IsActive:    category.IsActive,
+			Status:      category.Status,
 			CreatedTime: category.CreatedTime.Unix(),
 			UpdatedTime: category.UpdatedTime.Unix(),
 		},
@@ -80,8 +79,7 @@ func (l *UpdateCategoryLogic) generateCategoryInfo(req *types.UpdateCategoryReq)
 		Id:          req.Id,
 		Name:        req.Name,
 		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
-		SortOrder:   req.SortOrder,
-		IsActive:    req.IsActive,
+		Status:      req.Status,
 		UpdatedTime: time.Now(),
 	}
 }

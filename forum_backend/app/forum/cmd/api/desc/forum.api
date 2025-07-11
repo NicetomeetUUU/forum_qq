@@ -77,7 +77,7 @@ service forumService {
 	delete /p/delete (DeletePostReq) returns (DeletePostResp)
 
 	@handler RestorePost
-	post /p/restore (RestorePostReq) returns (RestorePostResp)
+	get /p/restore (RestorePostReq) returns (RestorePostResp)
 }
 
 @server (

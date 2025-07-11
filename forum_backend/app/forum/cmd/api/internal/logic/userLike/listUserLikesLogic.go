@@ -27,7 +27,7 @@ func NewListUserLikesLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Lis
 }
 
 func (l *ListUserLikesLogic) ListUserLikes(req *types.ListUserLikesReq) (resp *types.ListUserLikesResp, err error) {
-	if err := l.checkListUserLikesreq(req); err != nil {
+	if err := l.checkListUserLikesReq(req); err != nil {
 		errstr := fmt.Sprintf("checkListUserLikesreq error: %v", err)
 		l.Logger.Errorf(errstr)
 		return l.generateResp(nil, 400, errstr), err
@@ -48,7 +48,7 @@ func (l *ListUserLikesLogic) ListUserLikes(req *types.ListUserLikesReq) (resp *t
 	return
 }
 
-func (l *ListUserLikesLogic) checkListUserLikesreq(req *types.ListUserLikesReq) (err error) {
+func (l *ListUserLikesLogic) checkListUserLikesReq(req *types.ListUserLikesReq) (err error) {
 	if req.UserId <= 0 {
 		return errors.New("user_id is required")
 	}

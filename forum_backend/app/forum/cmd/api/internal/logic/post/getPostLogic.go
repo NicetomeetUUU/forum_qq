@@ -37,12 +37,12 @@ func (l *GetPostLogic) GetPost(req *types.GetPostReq) (resp *types.GetPostResp, 
 		l.Logger.Errorf(errstr)
 		return l.generateResp(nil, 400, errstr), err
 	}
-	userId := l.ctx.Value("userId").(int64)
-	if post.UserId != userId {
-		errstr := "user id not match"
-		l.Logger.Infof(errstr)
-		return l.generateResp(nil, 400, errstr), errors.New(errstr)
-	}
+	// userId := l.ctx.Value("userId").(int64)
+	// if post.UserId != userId {
+	// 	errstr := "user id not match"
+	// 	l.Logger.Infof(errstr)
+	// 	return l.generateResp(nil, 400, errstr), errors.New(errstr)
+	// }
 	l.Logger.Infof("get post success! post id: %d", post.Id)
 	err = l.svcCtx.PostModel.UpdateViewCount(l.ctx, post.Id)
 	if err != nil {
@@ -58,16 +58,16 @@ func (l *GetPostLogic) generateResp(post *post.Post, code int64, message string)
 	var postInfo types.PostInfo
 	if post != nil {
 		postInfo = types.PostInfo{
-			Id:          post.Id,
-			Title:       post.Title,
-			Content:     post.Content,
-			UserId:      post.UserId,
-			CategoryId:  post.CategoryId.Int64,
-			Status:      post.Status,
-			IsTop:       post.IsTop,
-			IsHot:       post.IsHot,
-			CreatedTime: post.CreatedTime.Unix(),
-			UpdatedTime: post.UpdatedTime.Unix(),
+			Id:           post.Id,
+			Title:        post.Title,
+			Content:      post.Content,
+			UserId:       post.UserId,
+			ViewCount:    post.ViewCount,
+			LikeCount:    post.LikeCount,
+			CommentCount: post.CommentCount,
+			Status:       post.Status,
+			CreatedTime:  post.CreatedTime.Unix(),
+			UpdatedTime:  post.UpdatedTime.Unix(),
 		}
 	}
 	return &types.GetPostResp{

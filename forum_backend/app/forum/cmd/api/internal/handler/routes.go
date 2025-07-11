@@ -134,7 +134,7 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Handler: post.ListPostsHandler(serverCtx),
 			},
 			{
-				Method:  http.MethodPost,
+				Method:  http.MethodGet,
 				Path:    "/p/restore",
 				Handler: post.RestorePostHandler(serverCtx),
 			},

@@ -26,7 +26,6 @@ var (
 
 	cacheQqForumAdminIdPrefix       = "cache:qqForum:admin:id:"
 	cacheQqForumAdminEmailPrefix    = "cache:qqForum:admin:email:"
-	cacheQqForumAdminPhonePrefix    = "cache:qqForum:admin:phone:"
 	cacheQqForumAdminUsernamePrefix = "cache:qqForum:admin:username:"
 )
 
@@ -35,7 +34,6 @@ type (
 		Insert(ctx context.Context, data *Admin) (sql.Result, error)
 		FindOne(ctx context.Context, id int64) (*Admin, error)
 		FindOneByEmail(ctx context.Context, email string) (*Admin, error)
-		FindOneByPhone(ctx context.Context, phone string) (*Admin, error)
 		FindOneByUsername(ctx context.Context, username string) (*Admin, error)
 		Update(ctx context.Context, data *Admin) error
 		Delete(ctx context.Context, id int64) error
@@ -47,15 +45,14 @@ type (
 	}
 
 	Admin struct {
-		Id          int64     `db:"id"`         // auto_admin_id
-		Email       string    `db:"email"`      // email
-		Password    string    `db:"password"`   // password
-		Username    string    `db:"username"`   // username
-		Phone       string    `db:"phone"`      // phone
-		Status      int64     `db:"status"`     // 1: active, 0: inactive
-		IsDeleted   int64     `db:"is_deleted"` // 1: deleted, 0: not deleted
-		CreatedTime time.Time `db:"created_time"`
-		UpdatedTime time.Time `db:"updated_time"`
+		Id            int64        `db:"id"`              // auto_admin_id
+		Email         string       `db:"email"`           // email
+		Password      string       `db:"password"`        // password
+		Username      string       `db:"username"`        // username
+		Status        string       `db:"status"`          // status
+		LastLoginTime sql.NullTime `db:"last_login_time"` // last login time
+		CreatedTime   time.Time    `db:"created_time"`
+		UpdatedTime   time.Time    `db:"updated_time"`
 	}
 )
 
@@ -74,12 +71,11 @@ func (m *defaultAdminModel) Delete(ctx context.Context, id int64) error {
 
 	qqForumAdminEmailKey := fmt.Sprintf("%s%v", cacheQqForumAdminEmailPrefix, data.Email)
 	qqForumAdminIdKey := fmt.Sprintf("%s%v", cacheQqForumAdminIdPrefix, id)
-	qqForumAdminPhoneKey := fmt.Sprintf("%s%v", cacheQqForumAdminPhonePrefix, data.Phone)
 	qqForumAdminUsernameKey := fmt.Sprintf("%s%v", cacheQqForumAdminUsernamePrefix, data.Username)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("delete from %s where `id` = ?", m.table)
 		return conn.ExecCtx(ctx, query, id)
-	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminPhoneKey, qqForumAdminUsernameKey)
+	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminUsernameKey)
 	return err
 }
 
@@ -120,26 +116,6 @@ func (m *defaultAdminModel) FindOneByEmail(ctx context.Context, email string) (*
 	}
 }
 
-func (m *defaultAdminModel) FindOneByPhone(ctx context.Context, phone string) (*Admin, error) {
-	qqForumAdminPhoneKey := fmt.Sprintf("%s%v", cacheQqForumAdminPhonePrefix, phone)
-	var resp Admin
-	err := m.QueryRowIndexCtx(ctx, &resp, qqForumAdminPhoneKey, m.formatPrimary, func(ctx context.Context, conn sqlx.SqlConn, v any) (i any, e error) {
-		query := fmt.Sprintf("select %s from %s where `phone` = ? limit 1", adminRows, m.table)
-		if err := conn.QueryRowCtx(ctx, &resp, query, phone); err != nil {
-			return nil, err
-		}
-		return resp.Id, nil
-	}, m.queryPrimary)
-	switch err {
-	case nil:
-		return &resp, nil
-	case sqlc.ErrNotFound:
-		return nil, ErrNotFound
-	default:
-		return nil, err
-	}
-}
-
 func (m *defaultAdminModel) FindOneByUsername(ctx context.Context, username string) (*Admin, error) {
 	qqForumAdminUsernameKey := fmt.Sprintf("%s%v", cacheQqForumAdminUsernamePrefix, username)
 	var resp Admin
@@ -163,12 +139,11 @@ func (m *defaultAdminModel) FindOneByUsername(ctx context.Context, username stri
 func (m *defaultAdminModel) Insert(ctx context.Context, data *Admin) (sql.Result, error) {
 	qqForumAdminEmailKey := fmt.Sprintf("%s%v", cacheQqForumAdminEmailPrefix, data.Email)
 	qqForumAdminIdKey := fmt.Sprintf("%s%v", cacheQqForumAdminIdPrefix, data.Id)
-	qqForumAdminPhoneKey := fmt.Sprintf("%s%v", cacheQqForumAdminPhonePrefix, data.Phone)
 	qqForumAdminUsernameKey := fmt.Sprintf("%s%v", cacheQqForumAdminUsernamePrefix, data.Username)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?, ?)", m.table, adminRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Email, data.Password, data.Username, data.Phone, data.Status, data.IsDeleted, data.CreatedTime, data.UpdatedTime)
-	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminPhoneKey, qqForumAdminUsernameKey)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?, ?)", m.table, adminRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Email, data.Password, data.Username, data.Status, data.LastLoginTime, data.CreatedTime, data.UpdatedTime)
+	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminUsernameKey)
 	return ret, err
 }
 
@@ -180,12 +155,11 @@ func (m *defaultAdminModel) Update(ctx context.Context, newData *Admin) error {
 
 	qqForumAdminEmailKey := fmt.Sprintf("%s%v", cacheQqForumAdminEmailPrefix, data.Email)
 	qqForumAdminIdKey := fmt.Sprintf("%s%v", cacheQqForumAdminIdPrefix, data.Id)
-	qqForumAdminPhoneKey := fmt.Sprintf("%s%v", cacheQqForumAdminPhonePrefix, data.Phone)
 	qqForumAdminUsernameKey := fmt.Sprintf("%s%v", cacheQqForumAdminUsernamePrefix, data.Username)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, adminRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Email, newData.Password, newData.Username, newData.Phone, newData.Status, newData.IsDeleted, newData.CreatedTime, newData.UpdatedTime, newData.Id)
-	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminPhoneKey, qqForumAdminUsernameKey)
+		return conn.ExecCtx(ctx, query, newData.Email, newData.Password, newData.Username, newData.Status, newData.LastLoginTime, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+	}, qqForumAdminEmailKey, qqForumAdminIdKey, qqForumAdminUsernameKey)
 	return err
 }
 

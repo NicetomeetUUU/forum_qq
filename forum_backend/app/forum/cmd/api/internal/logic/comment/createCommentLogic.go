@@ -42,6 +42,11 @@ func (l *CreateCommentLogic) CreateComment(req *types.CreateCommentReq) (resp *t
 		l.Logger.Errorf("get last insert id error: %v", err)
 		return l.generateResp(-1, 400, "get last insert id error"), err
 	}
+	err = l.svcCtx.PostModel.UpdateCommentCount(l.ctx, req.PostId, 1)
+	if err != nil {
+		l.Logger.Errorf("update post comment count error: %v", err)
+		return l.generateResp(-1, 400, "update post comment count error"), err
+	}
 	l.Logger.Infof("create comment success, commentId: %d", commentId)
 	resp = l.generateResp(commentId, 200, "create comment success")
 	return

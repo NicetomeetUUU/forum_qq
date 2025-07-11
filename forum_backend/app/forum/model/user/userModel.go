@@ -14,7 +14,7 @@ type (
 	// and implement the added methods in customUserModel.
 	UserModel interface {
 		userModel
-		IsUserExist(ctx context.Context, username string, email string, phone string) (bool, error)
+		IsUserExist(ctx context.Context, username string, email string) (bool, error)
 	}
 
 	customUserModel struct {
@@ -29,7 +29,7 @@ func NewUserModel(conn sqlx.SqlConn, c cache.CacheConf, opts ...cache.Option) Us
 	}
 }
 
-func (m *customUserModel) IsUserExist(ctx context.Context, username string, email string, phone string) (bool, error) {
+func (m *customUserModel) IsUserExist(ctx context.Context, username string, email string) (bool, error) {
 	userInfo, err := m.FindOneByUsername(ctx, username)
 	if err != nil && err != ErrNotFound {
 		return false, err
@@ -43,13 +43,6 @@ func (m *customUserModel) IsUserExist(ctx context.Context, username string, emai
 	}
 	if userInfo != nil {
 		return true, nil // email already exists
-	}
-	userInfo, err = m.FindOneByPhone(ctx, phone)
-	if err != nil && err != ErrNotFound {
-		return false, err
-	}
-	if userInfo != nil {
-		return true, nil // phone already exists
 	}
 	return false, nil
 }

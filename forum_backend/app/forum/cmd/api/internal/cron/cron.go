@@ -1,29 +1,87 @@
 package cron
 
 import (
-	"forum_backend/app/forum/cmd/api/internal/cron/task"
+	"context"
+	"forum_backend/app/forum/cmd/api/internal/config"
+
+	// "forum_backend/app/forum/cmd/api/internal/cron/task"
 	"forum_backend/app/forum/cmd/api/internal/svc"
+	"forum_backend/app/forum/model/comment"
+	"forum_backend/app/forum/model/post"
 	"time"
+
+	"github.com/zeromicro/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 
-func StartCronTasks(svcCtx *svc.ServiceContext) {
-	go startDataDeleteCron(svcCtx)
+type DataDeleteTask struct {
+	logx.Logger
+	ctx    context.Context
+	config config.Config
 }
 
-func startDataDeleteCron(svcCtx *svc.ServiceContext) {
+func NewDataDeleteTask(ctx context.Context, config config.Config) *DataDeleteTask {
+	return &DataDeleteTask{
+		Logger: logx.WithContext(ctx),
+		ctx:    ctx,
+		config: config,
+	}
+}
+
+func (t *DataDeleteTask) Run() error {
+	// 创建独立的数据库连接
+	conn := sqlx.NewMysql(t.config.DataSource)
+
+	// 创建模型实例
+	postModel := post.NewPostModel(conn, t.config.Cache)
+	commentModel := comment.NewCommentModel(conn, t.config.Cache)
+
+	postIdList, err := postModel.DeletePostByStatusAndTime(t.ctx, "hidden", time.Now().AddDate(0, 0, -7))
+	if err != nil {
+		t.Logger.Errorf("delete post by status and time failed: %v", err)
+		return err
+	}
+
+	for _, postId := range postIdList {
+		err = commentModel.DeleteCommentByPostId(t.ctx, postId)
+		if err != nil {
+			t.Logger.Errorf("delete comment by post id %d failed: %v", postId, err)
+		}
+	}
+
+	return nil
+}
+
+func StartCronTasks(svcCtx *svc.ServiceContext) {
+	go startDataDeleteCron(svcCtx.Config)
+}
+
+func startDataDeleteCron(config config.Config) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	ticker := time.NewTicker(time.Hour * 24)
 	defer ticker.Stop()
 
-	cleanUpTask := task.NewDataDeleteTask(svcCtx)
+	cleanUpTask := NewDataDeleteTask(ctx, config)
+	err := cleanUpTask.Run()
+	if err != nil {
+		cleanUpTask.Logger.Errorf("clean up task failed: %v", err)
+		return
+	}
+
 	for {
 		select {
 		case <-ticker.C:
+			now := time.Now()
+			cleanUpTask.Logger.Infof("clean up task started at %s", now.Format(time.DateTime))
 			err := cleanUpTask.Run()
 			if err != nil {
 				cleanUpTask.Logger.Errorf("clean up task failed: %v", err)
 				time.Sleep(time.Second * 10)
-				continue
 			}
+		case <-ctx.Done():
+			cleanUpTask.Logger.Infof("clean up task stopped")
+			return
 		}
 	}
 }

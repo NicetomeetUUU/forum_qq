@@ -84,8 +84,7 @@ func (l *ListCategoriesLogic) generateCategoryList(categoryList []*category.Cate
 			Id:          category.Id,
 			Name:        category.Name,
 			Description: category.Description.String,
-			SortOrder:   category.SortOrder,
-			IsActive:    category.IsActive,
+			Status:      category.Status,
 			CreatedTime: category.CreatedTime.Unix(),
 			UpdatedTime: category.UpdatedTime.Unix(),
 		})

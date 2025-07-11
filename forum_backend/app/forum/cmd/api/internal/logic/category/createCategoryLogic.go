@@ -74,8 +74,7 @@ func (l *CreateCategoryLogic) generateCategoryInfo(req *types.CreateCategoryReq)
 	return &category.Category{
 		Name:        req.Name,
 		Description: sql.NullString{String: req.Description, Valid: req.Description != ""},
-		SortOrder:   req.SortOrder,
-		IsActive:    1,
+		Status:      "active",
 		CreatedTime: time.Now(),
 		UpdatedTime: time.Now(),
 	}

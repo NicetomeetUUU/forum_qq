@@ -70,7 +70,7 @@ type (
 
 type (
 	DeleteCommentReq {
-		Id int64 `json:"id"`
+		Id int64 `form:"id"`
 	}
 	DeleteCommentResp {
 		BaseResp

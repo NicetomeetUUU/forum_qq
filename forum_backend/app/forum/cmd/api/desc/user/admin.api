@@ -11,15 +11,14 @@ info (
 import "../common/common.api"
 
 type AdminInfo {
-	Id          int64  `json:"id"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Username    string `json:"username"`
-	Phone       string `json:"phone"`
-	Status      int64  `json:"status"`
-	IsDeleted   int64  `json:"is_deleted"`
-	CreatedTime int64  `json:"created_time"`
-	UpdatedTime int64  `json:"updated_time"`
+	Id            int64  `json:"id"`
+	Email         string `json:"email"`
+	Password      string `json:"password"`
+	Username      string `json:"username"`
+	Status        string `json:"status"`
+	LastLoginTime int64  `json:"last_login_time"`
+	CreatedTime   int64  `json:"created_time"`
+	UpdatedTime   int64  `json:"updated_time"`
 }
 
 type (
@@ -27,7 +26,6 @@ type (
 		Email    string `json:"email"`
 		Password string `json:"password"`
 		Username string `json:"username"`
-		Phone    string `json:"phone"`
 	}
 	CreateAdminResp {
 		BaseResp
@@ -37,9 +35,8 @@ type (
 
 type (
 	LoginAdminReq {
-		Email    string `json:"email"`
-		Username string `json:"username"`
-		Phone    string `json:"phone"`
+		Email    string `json:"email,optional"`
+		Username string `json:"username,optional"`
 		Password string `json:"password"`
 	}
 	LoginAdminResp {
@@ -64,14 +61,13 @@ type (
 type (
 	UpdateAdminReq {
 		Id       int64  `json:"id"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Username string `json:"username"`
-		Phone    string `json:"phone"`
+		Email    string `json:"email,optional"`
+		Password string `json:"password,optional"`
+		Username string `json:"username,optional"`
 	}
 	UpdateAdminResp {
 		BaseResp
-		Id int64 `json:"id"`
+		Admin AdminInfo `json:"admin"`
 	}
 )
 

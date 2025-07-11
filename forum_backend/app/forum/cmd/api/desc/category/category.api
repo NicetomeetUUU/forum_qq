@@ -14,8 +14,7 @@ type CategoryInfo {
 	Id          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	SortOrder   int64  `json:"sort_order"`
-	IsActive    int64  `json:"is_active"`
+	Status      string `json:"status"`
 	CreatedTime int64  `json:"created_time"`
 	UpdatedTime int64  `json:"updated_time"`
 }
@@ -37,8 +36,7 @@ type (
 		Id          int64  `json:"id"`
 		Name        string `json:"name,optional"`
 		Description string `json:"description,optional"`
-		SortOrder   int64  `json:"sort_order,optional"`
-		IsActive    int64  `json:"is_active,optional"`
+		Status      string `json:"status,optional"`
 	}
 	UpdateCategoryResp {
 		BaseResp

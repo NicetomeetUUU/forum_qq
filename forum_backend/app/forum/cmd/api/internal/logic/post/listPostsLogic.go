@@ -72,16 +72,16 @@ func (l *ListPostsLogic) generateResp(postList []*post.Post, hasMore bool, lastI
 	var postInfoList []types.PostInfo
 	for _, post := range postList {
 		postInfoList = append(postInfoList, types.PostInfo{
-			Id:          post.Id,
-			Title:       post.Title,
-			Content:     post.Content,
-			UserId:      post.UserId,
-			CategoryId:  post.CategoryId.Int64,
-			Status:      post.Status,
-			IsTop:       post.IsTop,
-			IsHot:       post.IsHot,
-			CreatedTime: post.CreatedTime.Unix(),
-			UpdatedTime: post.UpdatedTime.Unix(),
+			Id:           post.Id,
+			Title:        post.Title,
+			Content:      post.Content,
+			UserId:       post.UserId,
+			ViewCount:    post.ViewCount,
+			LikeCount:    post.LikeCount,
+			CommentCount: post.CommentCount,
+			Status:       post.Status,
+			CreatedTime:  post.CreatedTime.Unix(),
+			UpdatedTime:  post.UpdatedTime.Unix(),
 		})
 	}
 	return &types.ListPostResp{

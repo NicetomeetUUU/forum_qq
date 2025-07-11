@@ -25,11 +25,11 @@ type (
 		CountPostsByCategoryId(ctx context.Context, categoryId int64) (int64, error)
 		UpdateViewCount(ctx context.Context, postId int64) error
 		SoftDelete(ctx context.Context, id int64) error
-		HardDelete(ctx context.Context, id int64) error
 		IncreaseLikeCount(ctx context.Context, id int64) error
 		DecreaseLikeCount(ctx context.Context, id int64) error
 		Restore(ctx context.Context, id int64) error
 		DeletePostByStatusAndTime(ctx context.Context, status string, time time.Time) ([]int64, error)
+		UpdateCommentCount(ctx context.Context, id int64, count int64) error
 	}
 
 	customPostModel struct {
@@ -87,10 +87,6 @@ func (m *customPostModel) SoftDelete(ctx context.Context, id int64) error {
 	return err
 }
 
-func (m *customPostModel) HardDelete(ctx context.Context, id int64) error {
-	return m.Delete(ctx, id)
-}
-
 func (m *customPostModel) IncreaseLikeCount(ctx context.Context, id int64) error {
 	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
 	query := fmt.Sprintf("UPDATE %s SET like_count = like_count + 1 WHERE id = ?", m.table)
@@ -130,9 +126,21 @@ func (m *customPostModel) DeletePostByStatusAndTime(ctx context.Context, status 
 		cacheKeys = append(cacheKeys, fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, postId))
 	}
 	m.CachedConn.DelCacheCtx(ctx, cacheKeys...)
+	if len(postIdList) == 0 {
+		return nil, nil
+	}
 	query = fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", m.table)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		return conn.ExecCtx(ctx, query, postIdList)
 	})
 	return postIdList, err
+}
+
+func (m *customPostModel) UpdateCommentCount(ctx context.Context, id int64, delta int64) error {
+	cacheKey := fmt.Sprintf("%s%d", cacheQqForumPostIdPrefix, id)
+	query := fmt.Sprintf("UPDATE %s SET comment_count = comment_count + ? WHERE id = ?", m.table)
+	_, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
+		return conn.ExecCtx(ctx, query, delta, id)
+	}, cacheKey)
+	return err
 }

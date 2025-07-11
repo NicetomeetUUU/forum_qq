@@ -46,8 +46,7 @@ type (
 		Id          int64          `db:"id"`          // auto_category_id
 		Name        string         `db:"name"`        // category name
 		Description sql.NullString `db:"description"` // category description
-		SortOrder   int64          `db:"sort_order"`  // sort order
-		IsActive    int64          `db:"is_active"`   // 1: active, 0: inactive
+		Status      string         `db:"status"`      // status
 		CreatedTime time.Time      `db:"created_time"`
 		UpdatedTime time.Time      `db:"updated_time"`
 	}
@@ -116,8 +115,8 @@ func (m *defaultCategoryModel) Insert(ctx context.Context, data *Category) (sql.
 	qqForumCategoryIdKey := fmt.Sprintf("%s%v", cacheQqForumCategoryIdPrefix, data.Id)
 	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, data.Name)
 	ret, err := m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
-		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?, ?)", m.table, categoryRowsExpectAutoSet)
-		return conn.ExecCtx(ctx, query, data.Name, data.Description, data.SortOrder, data.IsActive, data.CreatedTime, data.UpdatedTime)
+		query := fmt.Sprintf("insert into %s (%s) values (?, ?, ?, ?, ?)", m.table, categoryRowsExpectAutoSet)
+		return conn.ExecCtx(ctx, query, data.Name, data.Description, data.Status, data.CreatedTime, data.UpdatedTime)
 	}, qqForumCategoryIdKey, qqForumCategoryNameKey)
 	return ret, err
 }
@@ -132,7 +131,7 @@ func (m *defaultCategoryModel) Update(ctx context.Context, newData *Category) er
 	qqForumCategoryNameKey := fmt.Sprintf("%s%v", cacheQqForumCategoryNamePrefix, data.Name)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {
 		query := fmt.Sprintf("update %s set %s where `id` = ?", m.table, categoryRowsWithPlaceHolder)
-		return conn.ExecCtx(ctx, query, newData.Name, newData.Description, newData.SortOrder, newData.IsActive, newData.CreatedTime, newData.UpdatedTime, newData.Id)
+		return conn.ExecCtx(ctx, query, newData.Name, newData.Description, newData.Status, newData.CreatedTime, newData.UpdatedTime, newData.Id)
 	}, qqForumCategoryIdKey, qqForumCategoryNameKey)
 	return err
 }

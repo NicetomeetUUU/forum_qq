@@ -4,15 +4,14 @@
 package types
 
 type AdminInfo struct {
-	Id          int64  `json:"id"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	Username    string `json:"username"`
-	Phone       string `json:"phone"`
-	Status      int64  `json:"status"`
-	IsDeleted   int64  `json:"is_deleted"`
-	CreatedTime int64  `json:"created_time"`
-	UpdatedTime int64  `json:"updated_time"`
+	Id            int64  `json:"id"`
+	Email         string `json:"email"`
+	Password      string `json:"password"`
+	Username      string `json:"username"`
+	Status        string `json:"status"`
+	LastLoginTime int64  `json:"last_login_time"`
+	CreatedTime   int64  `json:"created_time"`
+	UpdatedTime   int64  `json:"updated_time"`
 }
 
 type BaseResp struct {
@@ -24,8 +23,7 @@ type CategoryInfo struct {
 	Id          int64  `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-	SortOrder   int64  `json:"sort_order"`
-	IsActive    int64  `json:"is_active"`
+	Status      string `json:"status"`
 	CreatedTime int64  `json:"created_time"`
 	UpdatedTime int64  `json:"updated_time"`
 }
@@ -46,7 +44,6 @@ type CreateAdminReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Username string `json:"username"`
-	Phone    string `json:"phone"`
 }
 
 type CreateAdminResp struct {
@@ -78,10 +75,9 @@ type CreateCommentResp struct {
 }
 
 type CreatePostReq struct {
-	UserId     int64  `json:"user_id"`
-	Title      string `json:"title"`
-	Content    string `json:"content"`
-	CategoryId int64  `json:"category_id,optional"`
+	UserId  int64  `json:"user_id"`
+	Title   string `json:"title"`
+	Content string `json:"content"`
 }
 
 type CreatePostResp struct {
@@ -118,7 +114,7 @@ type DeleteCategoryResp struct {
 }
 
 type DeleteCommentReq struct {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type DeleteCommentResp struct {
@@ -126,8 +122,8 @@ type DeleteCommentResp struct {
 }
 
 type DeletePostReq struct {
-	Id     int64 `json:"id"`
-	UserId int64 `json:"user_id"`
+	Id     int64 `form:"id"`
+	UserId int64 `form:"user_id"`
 }
 
 type DeletePostResp struct {
@@ -136,9 +132,9 @@ type DeletePostResp struct {
 }
 
 type DeleteUserLikeReq struct {
-	UserId     int64  `json:"user_id"`
-	TargetType string `json:"target_type"`
-	TargetId   int64  `json:"target_id"`
+	UserId     int64  `form:"user_id"`
+	TargetType string `form:"target_type"`
+	TargetId   int64  `form:"target_id"`
 }
 
 type DeleteUserLikeResp struct {
@@ -236,11 +232,11 @@ type ListCommentResp struct {
 }
 
 type ListPostReq struct {
-	CategoryId int64  `form:"category_id,optional"`
 	LastIndex  int64  `form:"last_index"`
 	PageSize   int64  `form:"page_size"`
 	OrderBy    string `form:"order_by"`
 	OrderType  string `form:"order_type"`
+	CategoryId int64  `form:"category_id,optional"`
 }
 
 type ListPostResp struct {
@@ -260,9 +256,8 @@ type ListUserLikesResp struct {
 }
 
 type LoginAdminReq struct {
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Phone    string `json:"phone"`
+	Email    string `json:"email,optional"`
+	Username string `json:"username,optional"`
 	Password string `json:"password"`
 }
 
@@ -300,23 +295,22 @@ type PaginationResp struct {
 }
 
 type PostInfo struct {
-	Id          int64  `json:"id"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	UserId      int64  `json:"user_id"`
-	CategoryId  int64  `json:"category_id"`
-	Status      string `json:"status"`
-	IsTop       int64  `json:"is_top"`
-	IsHot       int64  `json:"is_hot"`
-	CreatedTime int64  `json:"created_time"`
-	UpdatedTime int64  `json:"updated_time"`
+	Id           int64  `json:"id"`
+	Title        string `json:"title"`
+	Content      string `json:"content"`
+	UserId       int64  `json:"user_id"`
+	ViewCount    int64  `json:"view_count"`
+	LikeCount    int64  `json:"like_count"`
+	CommentCount int64  `json:"comment_count"`
+	Status       string `json:"status"`
+	CreatedTime  int64  `json:"created_time"`
+	UpdatedTime  int64  `json:"updated_time"`
 }
 
 type RegisterReq struct {
 	Email    string `json:"email"`
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Phone    string `json:"phone"`
 }
 
 type RegisterResp struct {
@@ -325,7 +319,7 @@ type RegisterResp struct {
 }
 
 type RestorePostReq struct {
-	Id int64 `json:"id"`
+	Id int64 `form:"id"`
 }
 
 type RestorePostResp struct {
@@ -335,23 +329,21 @@ type RestorePostResp struct {
 
 type UpdateAdminReq struct {
 	Id       int64  `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Username string `json:"username"`
-	Phone    string `json:"phone"`
+	Email    string `json:"email,optional"`
+	Password string `json:"password,optional"`
+	Username string `json:"username,optional"`
 }
 
 type UpdateAdminResp struct {
 	BaseResp
-	Id int64 `json:"id"`
+	Admin AdminInfo `json:"admin"`
 }
 
 type UpdateCategoryReq struct {
 	Id          int64  `json:"id"`
 	Name        string `json:"name,optional"`
 	Description string `json:"description,optional"`
-	SortOrder   int64  `json:"sort_order,optional"`
-	IsActive    int64  `json:"is_active,optional"`
+	Status      string `json:"status,optional"`
 }
 
 type UpdateCategoryResp struct {
@@ -369,12 +361,10 @@ type UpdateCommentResp struct {
 }
 
 type UpdatePostReq struct {
-	Id         int64  `json:"id"`
-	UserId     int64  `json:"user_id"`
-	Title      string `json:"title,optional"`
-	Content    string `json:"content,optional"`
-	CategoryId int64  `json:"category_id,optional"`
-	Status     int64  `json:"status,optional"`
+	Id      int64  `json:"id"`
+	UserId  int64  `json:"user_id"`
+	Title   string `json:"title,optional"`
+	Content string `json:"content,optional"`
 }
 
 type UpdatePostResp struct {
@@ -384,10 +374,9 @@ type UpdatePostResp struct {
 
 type UpdateUserReq struct {
 	UserId   int64  `form:"user_id"`
-	Email    string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
+	Email    string `json:"email,optional"`
+	Username string `json:"username,optional"`
+	Password string `json:"password,optional"`
 }
 
 type UpdateUserResp struct {
@@ -398,13 +387,11 @@ type UpdateUserResp struct {
 type UserInfo struct {
 	Id            int64  `json:"id"`
 	Email         string `json:"email"`
+	Password      string `json:"password"`
 	Username      string `json:"username"`
 	Avatar        string `json:"avatar"`
 	Signature     string `json:"signature"`
-	Birthday      string `json:"birthday"`
-	Phone         string `json:"phone"`
-	Status        int64  `json:"status"`
-	IsDeleted     int64  `json:"is_deleted"`
+	Status        string `json:"status"`
 	LastLoginTime int64  `json:"last_login_time"`
 	CreatedTime   int64  `json:"created_time"`
 	UpdatedTime   int64  `json:"updated_time"`

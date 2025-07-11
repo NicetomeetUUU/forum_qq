@@ -77,9 +77,7 @@ func (l *RegisterLogic) generateUserInfo(req *types.RegisterReq) *user.User {
 		Username:    req.Username,
 		Password:    req.Password,
 		Email:       req.Email,
-		Phone:       req.Phone,
-		Status:      1,
-		IsDeleted:   0,
+		Status:      "active",
 		CreatedTime: time.Now(),
 		UpdatedTime: time.Now(),
 	}

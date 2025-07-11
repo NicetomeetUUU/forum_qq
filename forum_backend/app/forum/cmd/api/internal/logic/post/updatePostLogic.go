@@ -28,30 +28,13 @@ func NewUpdatePostLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Update
 }
 
 func (l *UpdatePostLogic) UpdatePost(req *types.UpdatePostReq) (resp *types.UpdatePostResp, err error) {
-	if req.Id <= 0 {
-		errstr := "id is invalid, id must be greater than 0"
-		l.Logger.Infof(errstr)
-		return l.generateResp(req.Id, 400, errstr), errors.New(errstr)
-	}
-	postInfo, err := l.svcCtx.PostModel.FindOne(l.ctx, req.Id)
+	originalPostInfo, err := l.checkUpdatePostReq(req)
 	if err != nil {
-		errstr := fmt.Sprintf("find post by id %d failed: %v", req.Id, err)
+		errstr := fmt.Sprintf("check update post req failed, err: %v", err)
 		l.Logger.Errorf(errstr)
 		return l.generateResp(req.Id, 400, errstr), err
 	}
-	// currentUserId := l.ctx.Value("userId").(int64)
-	currentUserId := req.UserId
-	if postInfo.UserId != currentUserId {
-		errstr := "user id not match"
-		l.Logger.Infof(errstr)
-		return l.generateResp(req.Id, 400, errstr), errors.New(errstr)
-	}
-	if postInfo.Status != "published" {
-		errstr := "post is not published, can't update"
-		l.Logger.Infof(errstr)
-		return l.generateResp(req.Id, 400, errstr), errors.New(errstr)
-	}
-	postInfo = l.generatePostInfo(req)
+	postInfo := l.generatePostInfo(originalPostInfo, req)
 	err = l.svcCtx.PostModel.Update(l.ctx, postInfo)
 	if err != nil {
 		errstr := fmt.Sprintf("update post by id %d failed: %v", req.Id, err)
@@ -61,6 +44,36 @@ func (l *UpdatePostLogic) UpdatePost(req *types.UpdatePostReq) (resp *types.Upda
 	l.Logger.Infof("update post success! post id: %d", req.Id)
 	resp = l.generateResp(req.Id, 200, "update post success!")
 	return
+}
+
+func (l *UpdatePostLogic) checkUpdatePostReq(req *types.UpdatePostReq) (*post.Post, error) {
+	if req.Id <= 0 {
+		errstr := "id is invalid, id must be greater than 0"
+		l.Logger.Infof(errstr)
+		return nil, errors.New(errstr)
+	}
+	postInfo, err := l.svcCtx.PostModel.FindOne(l.ctx, req.Id)
+	if err != nil {
+		errstr := fmt.Sprintf("find post by id %d failed: %v", req.Id, err)
+		l.Logger.Errorf(errstr)
+		return nil, err
+	}
+	if postInfo == nil {
+		errstr := fmt.Sprintf("post not found, id: %d", req.Id)
+		l.Logger.Infof(errstr)
+		return nil, errors.New(errstr)
+	}
+	if postInfo.Status != "published" {
+		errstr := "post is not published, can't update"
+		l.Logger.Infof(errstr)
+		return nil, errors.New(errstr)
+	}
+	if postInfo.UserId != req.UserId {
+		errstr := "user id not match"
+		l.Logger.Infof(errstr)
+		return nil, errors.New(errstr)
+	}
+	return postInfo, nil
 }
 
 func (l *UpdatePostLogic) generateResp(postId int64, code int64, message string) *types.UpdatePostResp {
@@ -73,11 +86,14 @@ func (l *UpdatePostLogic) generateResp(postId int64, code int64, message string)
 	}
 }
 
-func (l *UpdatePostLogic) generatePostInfo(req *types.UpdatePostReq) *post.Post {
-	return &post.Post{
-		Id:          req.Id,
-		Title:       req.Title,
-		Content:     req.Content,
-		UpdatedTime: time.Now(),
+func (l *UpdatePostLogic) generatePostInfo(originalPostInfo *post.Post, req *types.UpdatePostReq) *post.Post {
+	updatedPostInfo := originalPostInfo
+	if req.Title != "" {
+		updatedPostInfo.Title = req.Title
 	}
+	if req.Content != "" {
+		updatedPostInfo.Content = req.Content
+	}
+	updatedPostInfo.UpdatedTime = time.Now()
+	return updatedPostInfo
 }

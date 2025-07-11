@@ -36,7 +36,7 @@ func (l *DeleteCategoryLogic) DeleteCategory(req *types.DeleteCategoryReq) (resp
 		l.Logger.Errorf(errstr)
 		return l.generateResp("none", 400, errstr), err
 	}
-	if category.IsActive == 1 {
+	if category.Status == "active" {
 		l.Logger.Infof("category is active, the soft delete will be executed.")
 		err = l.svcCtx.CategoryModel.SoftDelete(l.ctx, req.Id)
 		if err != nil {

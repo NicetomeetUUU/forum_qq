@@ -24,7 +24,7 @@ type (
 		FindCommentsByParentId(ctx context.Context, parentId int64) ([]*Comment, error)
 		FindCommentListByPostId(ctx context.Context, postId int64, lastIndex int64, pageSize int64) ([]*Comment, error)
 		CountCommentsByPostId(ctx context.Context, postId int64) (int64, error)
-		DeleteCommentByParentId(ctx context.Context, parentId int64) error
+		DeleteCommentByParentId(ctx context.Context, parentId int64) (int64, error)
 		DeleteCommentByPostId(ctx context.Context, postId int64) error
 		IncreaseLikeCount(ctx context.Context, id int64) error
 		DecreaseLikeCount(ctx context.Context, id int64) error
@@ -84,25 +84,27 @@ func (m *customCommentModel) CountCommentsByPostId(ctx context.Context, postId i
 	return count, nil
 }
 
-func (m *customCommentModel) DeleteCommentByParentId(ctx context.Context, parentId int64) error {
+func (m *customCommentModel) DeleteCommentByParentId(ctx context.Context, parentId int64) (int64, error) {
 	return m.deleteCommentRecursively(ctx, parentId)
 }
 
-func (m *customCommentModel) deleteCommentRecursively(ctx context.Context, parentId int64) error {
+func (m *customCommentModel) deleteCommentRecursively(ctx context.Context, parentId int64) (int64, error) {
 	comments, err := m.FindCommentsByParentId(ctx, parentId)
 	if err != nil {
-		return err
+		return 0, err
 	}
+	totalsubCommentCount := int64(0)
 	postIds := make([]int64, 0)
 	cacheKeys := make([]string, 0)
 	for _, comment := range comments {
-		err = m.deleteCommentRecursively(ctx, comment.Id)
+		subCommentCount, err := m.deleteCommentRecursively(ctx, comment.Id)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		cacheKey := fmt.Sprintf("%s%d", cacheQqForumCommentIdPrefix, comment.Id)
 		cacheKeys = append(cacheKeys, cacheKey)
 		postIds = append(postIds, comment.PostId)
+		totalsubCommentCount += subCommentCount
 	}
 	if len(comments) > 0 {
 		query := fmt.Sprintf("DELETE FROM %s WHERE parent_id = ?", m.table)
@@ -110,7 +112,7 @@ func (m *customCommentModel) deleteCommentRecursively(ctx context.Context, paren
 			return conn.ExecCtx(ctx, query, parentId)
 		})
 		if err != nil {
-			return err
+			return 0, err
 		}
 		for _, cacheKey := range cacheKeys {
 			m.DelCacheCtx(ctx, cacheKey)
@@ -120,7 +122,8 @@ func (m *customCommentModel) deleteCommentRecursively(ctx context.Context, paren
 			m.DelCacheCtx(ctx, countCacheKey)
 		}
 	}
-	return nil
+	totalCommentCount := int64(len(comments)) + totalsubCommentCount
+	return totalCommentCount, nil
 }
 
 func (m *customCommentModel) DeleteCommentByPostId(ctx context.Context, postId int64) error {
@@ -133,6 +136,9 @@ func (m *customCommentModel) DeleteCommentByPostId(ctx context.Context, postId i
 	}
 	for _, commentId := range commentIdList {
 		cacheKeys = append(cacheKeys, fmt.Sprintf("%s%d", cacheQqForumCommentIdPrefix, commentId))
+	}
+	if len(commentIdList) == 0 {
+		return nil
 	}
 	query = fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", m.table)
 	_, err = m.ExecCtx(ctx, func(ctx context.Context, conn sqlx.SqlConn) (result sql.Result, err error) {

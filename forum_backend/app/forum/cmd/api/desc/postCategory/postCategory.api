@@ -1,0 +1,59 @@
+syntax = "v1"
+
+info (
+	version:     "1.0.0"
+	title:       "帖子分类实例"
+	description: "帖子分类实例相关的api请求与回复定义"
+	author:      "qiuqiu"
+	email:       "rhysqiuj@gmail.com"
+)
+
+import "../common/common.api"
+
+type PostCategoryInfo {
+	Id          int64 `json:"id"`
+	PostId      int64 `json:"post_id"`
+	CategoryId  int64 `json:"category_id"`
+	CreatedTime int64 `json:"created_time"`
+}
+
+type (
+	CreatePostCategoryReq {
+		PostId     int64 `json:"post_id"`
+		CategoryId int64 `json:"category_id"`
+	}
+	CreatePostCategoryResp {
+		BaseResp
+		PostCategoryId int64 `json:"post_category_id"`
+	}
+)
+
+type (
+	DeletePostCategoryReq {
+		Id int64 `json:"id"`
+	}
+	DeletePostCategoryResp {
+		BaseResp
+	}
+)
+
+type (
+	ListPostCategoriesIdsReq {
+		PostId int64 `form:"post_id"`
+	}
+	ListPostCategoriesIdsResp {
+		BaseResp
+		CategoriesIds []int64 `json:"categories_ids"`
+	}
+)
+
+type (
+	GetCategoryPostsIdsReq {
+		CategoryId int64 `form:"category_id"`
+	}
+	GetCategoryPostsIdsResp {
+		BaseResp
+		PostsIds []int64 `json:"posts_ids"`
+	}
+)
+
